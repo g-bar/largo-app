@@ -8,6 +8,11 @@ export const RED = '#BE1E2D'
 export const AXIS = '#B8BDC6'
 export const GREY_BAR = '#D1D5DB'
 
+// Distinct series colors, cycled per subject in the comparison chart. First is the
+// brand red so a single-subject compare matches the scorecard charts.
+export const PALETTE = ['#BE1E2D', '#4A76A8', '#E8A8C8', '#5BA85B', '#E89A3C']
+export const paletteColor = (i: number) => PALETTE[i % PALETTE.length]
+
 export type Mode = 'pct' | 'count'
 
 // Box scores (Top Two / Top Three / Bottom Two / Bottom Three) derived from a

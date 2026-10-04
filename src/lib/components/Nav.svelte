@@ -3,6 +3,7 @@
 
 	let open = $state(false)
 	const onList = $derived(page.url.pathname === '/')
+	const onCompare = $derived(page.url.pathname === '/compare')
 </script>
 
 <nav class="nav">
@@ -15,8 +16,9 @@
 			<!-- svelte-ignore a11y_invalid_attribute -->
 			<li><a href="#">DASHBOARD</a></li>
 			<!-- svelte-ignore a11y_invalid_attribute -->
-			<li><a href="#" class:active={!onList}>SMART SEARCH</a></li>
+			<li><a href="#" class:active={!onList && !onCompare}>SMART SEARCH</a></li>
 			<li><a href="/" class:active={onList}>LIST VIEW</a></li>
+			<li><a href="/compare" class:active={onCompare}>COMPARE</a></li>
 		</ul>
 		<div class="nav-avatar">A</div>
 	</div>

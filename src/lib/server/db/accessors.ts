@@ -100,3 +100,9 @@ export async function listCelebrities(): Promise<{ id: string; name: string; pho
 		.from(celebrity)
 		.orderBy(celebrity.name)
 }
+
+// Every category, name-ordered. Used by the comparison subject picker (categories can
+// be compared on appeal / attributes / power factors, but not E-Score).
+export async function listCategories(): Promise<{ id: string; name: string }[]> {
+	return db.select({ id: category.id, name: category.name }).from(category).orderBy(category.name)
+}

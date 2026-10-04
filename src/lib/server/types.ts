@@ -49,6 +49,37 @@ export const pageParamsSchema = v.object({
 
 export type PageParams = v.InferOutput<typeof pageParamsSchema>
 
+// The comparison page params. Shares the date/gender/age slice with the scorecard,
+// plus a chosen metric (one question) and a list of subject ids to compare. subjects
+// is a comma-separated list in the URL (e.g. ?subjects=brad-pitt,margot-robbie); it is
+// parsed to a string array, trimmed, de-duped, and capped. Categories have no E-Score,
+// so when metric = e_score the load drops any category ids (enforced at read time).
+export const COMPARE_MAX_SUBJECTS = 5
+
+// Comparison metrics = the gated questions plus awareness. Awareness is not a DB
+// `question` (it lives in the awareness table and its % is derived), so the compare
+// layer treats it as its own metric and reads it via getAwareness.
+export const compareMetrics = ['awareness', ...questions] as const
+export type CompareMetric = (typeof compareMetrics)[number]
+
+export const compareParamsSchema = v.object({
+	fieldingDate: v.optional(v.pipe(v.string(), v.isoDate()), DEFAULT_FIELDING_DATE),
+	gender: v.optional(v.picklist(genders), 'total'),
+	ageBand: v.optional(v.picklist(ageBands), 'total'),
+	metric: v.optional(v.picklist(compareMetrics), 'e_score'),
+	subjects: v.optional(
+		v.pipe(
+			v.string(),
+			v.transform(s =>
+				[...new Set(s.split(',').map(x => x.trim()).filter(Boolean))].slice(0, COMPARE_MAX_SUBJECTS),
+			),
+		),
+		'',
+	),
+})
+
+export type CompareParams = v.InferOutput<typeof compareParamsSchema>
+
 // Response shapes. The data payload depends on the question.
 export type AppealData = {
 	likeALot: number
