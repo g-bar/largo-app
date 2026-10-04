@@ -8,6 +8,13 @@
       "when": 1791123099451,
       "tag": "0000_funny_greymalkin",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791136146213,
+      "tag": "0001_good_maginty",
+      "breakpoints": true
     }
   ]
 }

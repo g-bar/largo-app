@@ -37,6 +37,7 @@ export async function getAwareness(args: {
 	subjectId: string
 	fieldingDate: string
 	gender: Gender
+	ageBand: AgeBand
 }): Promise<Awareness | null> {
 	const [row] = await db
 		.select({
@@ -51,6 +52,7 @@ export async function getAwareness(args: {
 				or(eq(awareness.celebrityId, args.subjectId), eq(awareness.categoryId, args.subjectId)),
 				eq(awareness.fieldingDate, args.fieldingDate),
 				eq(awareness.gender, args.gender),
+				eq(awareness.ageBand, args.ageBand),
 			),
 		)
 	return row ?? null

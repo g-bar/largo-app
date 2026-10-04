@@ -14,7 +14,7 @@ import {
 // Dimension enums. Every dimension carries a real "all" sentinel (never NULL), so
 // unique constraints dedup correctly and "all" is queried like any other value.
 export const gender = pgEnum('gender', ['total', 'male', 'female'])
-export const ageBand = pgEnum('age_band', ['total'])
+export const ageBand = pgEnum('age_band', ['total', '13-20', '21-34', '35-54', '55+'])
 export const awarenessMode = pgEnum('awareness_mode', ['any', 'name', 'face'])
 export const question = pgEnum('question', ['appeal', 'attributes', 'power_factors', 'e_score'])
 
@@ -47,12 +47,13 @@ export const celebrityCategory = pgTable(
 )
 
 // Awareness gate: the whole-sample facts, one row per subject x fieldingDate x
-// gender. sampleBase is the surveyed count; awareAny/awareName/awareFace are the
-// counts recognising the subject by name-or-face / name / face. These counts are the
-// source of truth for the gated questions' denominators: a gated question_result row
-// with awarenessMode = face has base = awareFace (same subject/fielding/gender), etc.
-// (name and face overlap, so they do not sum to any.) No eScore here: E-Score is
-// gated, so it lives in question_result like appeal.
+// gender x ageBand. sampleBase is the surveyed count; awareAny/awareName/awareFace are
+// the counts recognising the subject by name-or-face / name / face. These counts are
+// the source of truth for the gated questions' denominators: a gated question_result
+// row with awarenessMode = face has base = awareFace (same subject/fielding/gender/
+// ageBand), etc. (name and face overlap, so they do not sum to any.) The ageBand = total
+// and gender = total rows are stored precomputed rollups (sum of the age/gender slices).
+// No eScore here: E-Score is gated, so it lives in question_result like appeal.
 export const awareness = pgTable(
 	'awareness',
 	{
@@ -61,13 +62,14 @@ export const awareness = pgTable(
 		categoryId: text('category_id').references(() => category.id),
 		fieldingDate: date('fielding_date').notNull(),
 		gender: gender('gender').notNull(),
+		ageBand: ageBand('age_band').notNull(),
 		sampleBase: integer('sample_base').notNull(),
 		awareAny: integer('aware_any').notNull(),
 		awareName: integer('aware_name').notNull(),
 		awareFace: integer('aware_face').notNull(),
 	},
 	t => [
-		unique().on(t.celebrityId, t.categoryId, t.fieldingDate, t.gender),
+		unique().on(t.celebrityId, t.categoryId, t.fieldingDate, t.gender, t.ageBand),
 		check(
 			'awareness_subject_exactly_one',
 			sql`(${t.celebrityId} is not null) <> (${t.categoryId} is not null)`,

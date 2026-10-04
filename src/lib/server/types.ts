@@ -4,7 +4,7 @@
 import * as v from 'valibot'
 
 export const genders = ['total', 'male', 'female'] as const
-export const ageBands = ['total'] as const
+export const ageBands = ['total', '13-20', '21-34', '35-54', '55+'] as const
 export const awarenessModes = ['any', 'name', 'face'] as const
 export const questions = ['appeal', 'attributes', 'power_factors', 'e_score'] as const
 

@@ -29,7 +29,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 	if (!celebrity) error(404, 'Celebrity not found')
 
 	// The page exists only if the selected awareness cell exists for this celebrity.
-	const awareness = await getAwareness({ subjectId: params.id, fieldingDate, gender })
+	const awareness = await getAwareness({ subjectId: params.id, fieldingDate, gender, ageBand })
 	if (!awareness) error(404, 'No scorecard for this filter')
 
 	const primaryCategory = celebrity.categories[0]
@@ -69,7 +69,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 		appeal(primaryCategory.id, 'total', 'any'),
 		powerFactors(params.id),
 		powerFactors(primaryCategory.id),
-		...celebrity.categories.map(c => getAwareness({ subjectId: c.id, fieldingDate, gender: 'total' })),
+		...celebrity.categories.map(c => getAwareness({ subjectId: c.id, fieldingDate, gender: 'total', ageBand })),
 	])
 
 	return {
