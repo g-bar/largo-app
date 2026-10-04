@@ -69,7 +69,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 		appeal(primaryCategory.id, 'total', 'any'),
 		powerFactors(params.id),
 		powerFactors(primaryCategory.id),
-		...celebrity.categories.map(c => getAwareness({ subjectId: c.id, fieldingDate, gender: 'total', ageBand })),
+		...celebrity.categories.map(c => getAwareness({ subjectId: c.id, fieldingDate, gender, ageBand })),
 	])
 
 	return {
