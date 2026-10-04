@@ -1,7 +1,7 @@
 // Pure data accessors: plain args in, plain data out, no SvelteKit coupling. Called
 // directly by the +page.server.ts load, by the JSON endpoints (after validation),
 // and by any future remote function alike.
-import { and, eq, or } from 'drizzle-orm'
+import { and, desc, eq, or } from 'drizzle-orm'
 import { db } from './index'
 import { awareness, category, celebrity, celebrityCategory, questionResult } from './schema'
 import type {
@@ -81,4 +81,22 @@ export async function getQuestion(args: {
 		)
 	if (!row) return null
 	return { base: row.base, data: row.data as QuestionResult['data'] }
+}
+
+// Distinct fielding dates present in the data, newest first. Drives the date filter.
+export async function getFieldingDates(): Promise<string[]> {
+	const rows = await db
+		.selectDistinct({ fieldingDate: awareness.fieldingDate })
+		.from(awareness)
+		.orderBy(desc(awareness.fieldingDate))
+	return rows.map(r => r.fieldingDate)
+}
+
+// The list view: every celebrity, name-ordered. No filter: the list just links to
+// each scorecard, which applies its own default slice.
+export async function listCelebrities(): Promise<{ id: string; name: string; photoUrl: string }[]> {
+	return db
+		.select({ id: celebrity.id, name: celebrity.name, photoUrl: celebrity.photoUrl })
+		.from(celebrity)
+		.orderBy(celebrity.name)
 }

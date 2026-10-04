@@ -22,7 +22,12 @@
 </svelte:head>
 
 <main class="content page">
-	<CelebHeader name={data.celebrity.name} photoUrl={data.celebrity.photoUrl} />
+	<CelebHeader
+		name={data.celebrity.name}
+		photoUrl={data.celebrity.photoUrl}
+		filter={data.filter}
+		fieldingDates={data.fieldingDates}
+	/>
 
 	<Tabs />
 

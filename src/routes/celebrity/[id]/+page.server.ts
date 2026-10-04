@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit'
 import * as v from 'valibot'
-import { getAwareness, getCelebrity, getQuestion } from '#lib/server/db/accessors.ts'
+import { getAwareness, getCelebrity, getFieldingDates, getQuestion } from '#lib/server/db/accessors.ts'
 import { type AppealData, type Gender, type OrderedMap, pageParamsSchema } from '#lib/server/types.ts'
 import type { PageServerLoad } from './$types'
 
@@ -45,6 +45,8 @@ export const load: PageServerLoad = async ({ params, url }) => {
 	const powerFactors = (subjectId: string) =>
 		getQuestion({ subjectId, fieldingDate, gender, ageBand, awarenessMode: 'any', question: 'power_factors' })
 
+	const fieldingDates = await getFieldingDates()
+
 	const [
 		eScore,
 		appealAny,
@@ -75,6 +77,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 	return {
 		celebrity,
 		filter: { fieldingDate, gender, ageBand },
+		fieldingDates,
 		eScore: (eScore?.data as number) ?? null,
 		awareness: awarenessPct(awareness),
 		// Category averages are always shown as rates (the awareness card is percent-only:

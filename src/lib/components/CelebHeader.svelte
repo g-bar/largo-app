@@ -1,5 +1,41 @@
 <script lang="ts">
-	let { name, photoUrl }: { name: string; photoUrl: string } = $props()
+	import { goto } from '$app/navigation'
+	import { page } from '$app/state'
+
+	let {
+		name,
+		photoUrl,
+		filter,
+		fieldingDates,
+	}: {
+		name: string
+		photoUrl: string
+		filter: { fieldingDate: string; gender: string; ageBand: string }
+		fieldingDates: string[]
+	} = $props()
+
+	const genderOptions = [
+		{ value: 'total', label: 'Total' },
+		{ value: 'male', label: 'Male' },
+		{ value: 'female', label: 'Female' },
+	]
+	const ageOptions = [
+		{ value: 'total', label: 'All ages' },
+		{ value: '13-20', label: '13-20' },
+		{ value: '21-34', label: '21-34' },
+		{ value: '35-54', label: '35-54' },
+		{ value: '55+', label: '55+' },
+	]
+	const dateLabel = (iso: string) =>
+		new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+
+	// Change one filter: rewrite that query param on the current celebrity route and
+	// navigate, keeping the others. The load reruns and re-slices the whole page.
+	function setParam(key: string, value: string) {
+		const params = new URLSearchParams(page.url.search)
+		params.set(key, value)
+		goto(`${page.url.pathname}?${params}`, { reset: false })
+	}
 </script>
 
 <section class="header-card">
@@ -9,14 +45,30 @@
 	<div class="header-controls">
 		<div class="control-group">
 			<label for="fielding-date">Fielding date:</label>
-			<select id="fielding-date">
-				<option>July 25, 2025</option>
+			<select
+				id="fielding-date"
+				value={filter.fieldingDate}
+				onchange={e => setParam('fieldingDate', e.currentTarget.value)}
+			>
+				{#each fieldingDates as d (d)}
+					<option value={d}>{dateLabel(d)}</option>
+				{/each}
 			</select>
 		</div>
 		<div class="control-group">
-			<label for="filter-by">Filter by:</label>
-			<select id="filter-by">
-				<option>Total</option>
+			<label for="gender">Gender:</label>
+			<select id="gender" value={filter.gender} onchange={e => setParam('gender', e.currentTarget.value)}>
+				{#each genderOptions as g (g.value)}
+					<option value={g.value}>{g.label}</option>
+				{/each}
+			</select>
+		</div>
+		<div class="control-group">
+			<label for="age">Age:</label>
+			<select id="age" value={filter.ageBand} onchange={e => setParam('ageBand', e.currentTarget.value)}>
+				{#each ageOptions as a (a.value)}
+					<option value={a.value}>{a.label}</option>
+				{/each}
 			</select>
 		</div>
 		<button class="btn-export">Export</button>
