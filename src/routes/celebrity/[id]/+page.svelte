@@ -42,12 +42,7 @@
 	<section class="chart-grid">
 		<TotalAppealChart {mode} slices={data.totalAppeal} />
 		<AttributesChart {mode} slices={data.attributes} />
-		<AppealChart
-			{mode}
-			categoryName={data.appeal.categoryName}
-			appeal={data.appeal.data}
-			base={data.appeal.base}
-		/>
+		<AppealChart {mode} categoryName={data.appeal.categoryName} slice={data.appeal.slice} />
 		<PowerFactorsChart
 			{mode}
 			celebName={data.celebrity.name}

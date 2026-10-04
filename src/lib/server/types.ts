@@ -33,6 +33,22 @@ export const questionQuerySchema = v.pipe(
 
 export type QuestionQuery = v.InferOutput<typeof questionQuerySchema>
 
+// Default fielding date when the page URL omits it. (No "latest" lookup yet; the
+// synthetic data has a single wave.)
+export const DEFAULT_FIELDING_DATE = '2025-07-25'
+
+// The scorecard page's query params (?fieldingDate=&gender=&ageBand=). All optional;
+// missing values fall back to the fielding default and the "all" sentinels. Unknown or
+// malformed values are a validation failure (the page should 404), so this is strict
+// on the values it does receive.
+export const pageParamsSchema = v.object({
+	fieldingDate: v.optional(v.pipe(v.string(), v.isoDate()), DEFAULT_FIELDING_DATE),
+	gender: v.optional(v.picklist(genders), 'total'),
+	ageBand: v.optional(v.picklist(ageBands), 'total'),
+})
+
+export type PageParams = v.InferOutput<typeof pageParamsSchema>
+
 // Response shapes. The data payload depends on the question.
 export type AppealData = {
 	likeALot: number

@@ -16,12 +16,12 @@
 		mode: Mode
 		sampleBase: number
 		awareness: number
-		categories: { id: string; label: string; awareness: number }[]
+		categories: { id: string; label: string; awareness: number | null }[]
 	} = $props()
 
 	const indexed = $derived(mode === 'count')
 	const toCount = (pct: number) => Math.round((pct * sampleBase) / 100)
-	const fmt = (pct: number) => (indexed ? String(toCount(pct)) : pct + '%')
+	const fmt = (pct: number | null) => (pct === null ? '-' : indexed ? String(toCount(pct)) : pct + '%')
 </script>
 
 <div class="card awareness-card">
