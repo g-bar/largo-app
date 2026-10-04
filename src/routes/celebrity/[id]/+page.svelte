@@ -30,21 +30,15 @@
 
 	<section class="top-row">
 		<EScoreCard eScore={data.eScore} imdbUrl={data.celebrity.imdbUrl} />
-		<AwarenessCard
-			{mode}
-			sampleBase={data.sampleBase}
-			awareness={data.awareness}
-			categories={data.awarenessCategories}
-		/>
+		<AwarenessCard awareness={data.awareness} categories={data.awarenessCategories} />
 		<NewsCarousel />
 	</section>
 
 	<section class="chart-grid">
 		<TotalAppealChart {mode} slices={data.totalAppeal} />
 		<AttributesChart {mode} slices={data.attributes} />
-		<AppealChart {mode} categoryName={data.appeal.categoryName} slice={data.appeal.slice} />
+		<AppealChart categoryName={data.appeal.categoryName} slice={data.appeal.slice} />
 		<PowerFactorsChart
-			{mode}
 			celebName={data.celebrity.name}
 			categoryName={data.powerFactors.categoryName}
 			slices={{ celeb: data.powerFactors.celeb, category: data.powerFactors.category }}

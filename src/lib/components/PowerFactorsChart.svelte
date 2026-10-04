@@ -3,24 +3,22 @@
 	import ChartCard from './ChartCard.svelte'
 	import ChartEmpty from './ChartEmpty.svelte'
 	import ChartSkeleton from './ChartSkeleton.svelte'
-	import { GREY_BAR, RED, type Mode, barBase, makeView } from '#lib/chart.ts'
+	import { GREY_BAR, RED, barBase, makeView } from '#lib/chart.ts'
 	import type { OrderedMap } from '#lib/server/types.ts'
 
-	// Celebrity vs primary-category power factors. The celebrity series is measured
-	// among people aware of the celebrity; the category series is the pool of its member
-	// actors' ratings (one respondent x one actor = one rating), flagged "(ratings)". In
-	// # mode each series shows literal counts on its own base. If the celebrity slice is
-	// null the chart is empty; a null category slice just drops that series.
+	// Celebrity vs primary-category power factors. The category series is a benchmark on
+	// a different population, so this chart compares subjects and is always shown as
+	// rates: counts across a celebrity (people) and a category (ratings) are not
+	// comparable, and category counts are meaningless on the celebrity's page. The %/#
+	// toggle does not apply; this chart ignores `mode` and always renders %.
 	type Slice = { data: OrderedMap; base: number }
 	type Slices = { celeb: Slice | null; category: Slice | null }
 	let {
-		mode,
 		celebName,
 		categoryName,
 		slices,
 		load,
 	}: {
-		mode: Mode
 		celebName: string
 		categoryName: string | null
 		slices?: Slices
@@ -36,8 +34,7 @@
 	const option = $derived.by<EChartsOption | undefined>(() => {
 		if (!data || !data.celeb) return undefined
 		const celeb = data.celeb
-		const bases = [celeb.base, ...(data.category ? [data.category.base] : [])]
-		const view = makeView(mode, Math.max(...bases))
+		const view = makeView('pct', celeb.base)
 		const cats = Object.keys(celeb.data)
 		const opt = barBase(view, cats, 60, 15, 30)
 		const series = [
@@ -52,7 +49,7 @@
 		if (data.category && categoryName) {
 			const cat = data.category
 			series.push({
-				name: `${categoryName} Avg. (ratings)`,
+				name: `${categoryName} Avg.`,
 				type: 'bar' as const,
 				data: view.series(cats.map(k => cat.data[k]), cat.base),
 				itemStyle: { color: GREY_BAR },

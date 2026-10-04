@@ -75,13 +75,14 @@ export const load: PageServerLoad = async ({ params, url }) => {
 	return {
 		celebrity,
 		filter: { fieldingDate, gender, ageBand },
-		// Awareness is a whole-sample fact, shown as a count out of the sample base.
-		sampleBase: awareness.sampleBase,
 		eScore: (eScore?.data as number) ?? null,
 		awareness: awarenessPct(awareness),
+		// Category averages are always shown as rates (the awareness card is percent-only:
+		// a cross-category comparison is only meaningful as a rate, not raw counts on
+		// different bases).
 		awarenessCategories: celebrity.categories.map((c, i) => {
 			const a = categoryAwareness[i]
-			return { id: c.id, label: c.name, awareness: a ? awarenessPct(a) : null }
+			return { id: c.id, label: c.name, pct: a ? awarenessPct(a) : null }
 		}),
 		totalAppeal: {
 			any: slice<AppealData>(appealAny),

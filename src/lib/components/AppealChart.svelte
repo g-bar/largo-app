@@ -3,21 +3,18 @@
 	import ChartCard from './ChartCard.svelte'
 	import ChartEmpty from './ChartEmpty.svelte'
 	import ChartSkeleton from './ChartSkeleton.svelte'
-	import { AXIS, type Mode, makeView } from '#lib/chart.ts'
 	import type { AppealData } from '#lib/server/types.ts'
 
-	// Primary category's appeal distribution (6-point pie). A category is the pool of
-	// its member actors' ratings (one respondent evaluating one actor = one rating), so
-	// its base is a rating count. In # mode the slices are literal counts on that rating
-	// base. A null slice shows an empty state.
+	// Primary category's appeal distribution (6-point pie). A category is a benchmark on
+	// a different population from the page subject, so it is always shown as a rate: a
+	// count here (category ratings) would be meaningless on the celebrity's page. The
+	// %/# toggle does not apply; this chart ignores `mode` and always renders %.
 	type Slice = { data: AppealData; base: number }
 	let {
-		mode,
 		categoryName,
 		slice,
 		load,
 	}: {
-		mode: Mode
 		categoryName: string | null
 		slice?: Slice | null
 		load?: () => Promise<Slice>
@@ -34,9 +31,7 @@
 
 	const option = $derived.by<EChartsOption | undefined>(() => {
 		if (!data) return undefined
-		const base = data.base
 		const d = data.data
-		const view = makeView(mode, base)
 		const parts = [
 			{ name: 'Like A Lot', value: d.likeALot, color: '#4A76A8' },
 			{ name: 'Like', value: d.like, color: '#6B9AD4' },
@@ -45,21 +40,11 @@
 			{ name: 'Dislike', value: d.dislike, color: '#E89A6B' },
 			{ name: 'Dislike A Lot', value: d.dislikeALot, color: '#D46B4A' },
 		]
-		const suffix = view.isPct ? '%' : ''
-		const caption = view.isPct ? undefined : `Base: ${base.toLocaleString()} (ratings)`
 		return {
-			title: caption
-				? {
-						text: caption,
-						left: 'center',
-						top: 2,
-						textStyle: { color: AXIS, fontSize: 11, fontWeight: 'normal' },
-					}
-				: undefined,
 			tooltip: {
 				trigger: 'item',
 				formatter: p =>
-					`${(p as DefaultLabelFormatterCallbackParams).name}: ${(p as DefaultLabelFormatterCallbackParams).value}${suffix}`,
+					`${(p as DefaultLabelFormatterCallbackParams).name}: ${(p as DefaultLabelFormatterCallbackParams).value}%`,
 			},
 			series: [
 				{
@@ -70,11 +55,11 @@
 					startAngle: 0,
 					data: parts.map(s => ({
 						name: s.name,
-						value: view.value(s.value, base),
+						value: s.value,
 						itemStyle: { color: s.color },
 					})),
 					label: {
-						formatter: (p: DefaultLabelFormatterCallbackParams) => `${p.name}, ${p.value}${suffix}`,
+						formatter: (p: DefaultLabelFormatterCallbackParams) => `${p.name}, ${p.value}%`,
 						color: '#515A68',
 						fontSize: 12,
 					},

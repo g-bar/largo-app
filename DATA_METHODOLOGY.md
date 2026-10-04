@@ -72,6 +72,23 @@ question_result.base (awarenessMode = face) == awareness.awareFace
 
 This is a hard invariant: a gated row's base equals the matching awareness count.
 
+### `base` unit: people for a celebrity, ratings for a category
+
+`base` is the row's denominator, but its unit depends on the subject kind:
+
+- **Celebrity row:** `base` is **people** aware of that celebrity.
+- **Category row:** `base` is **ratings** (person x actor evaluations), the member-actor
+  rating pool, not distinct people. See the category section below.
+
+The same column therefore carries two units. The schema does not tag which; the unit is
+implied by whether `celebrityId` or `categoryId` is set. This is tolerated because the
+UI never renders a category `base` as a count: category figures are only ever shown as
+rates (see Display modes), where the denominator does not surface. The category `base`
+is still retained, it is the honest denominator for that row's percentages and keeps the
+uniform `{ base, data }` row shape, and a future category-first view could show it as a
+ratings count. If such a view lands, make the unit explicit (e.g. a `baseUnit` column)
+rather than relying on the subject kind.
+
 ### Awareness % is derived, not stored
 
 The displayed awareness percentage is `awareAny / sampleBase`. Counts are stored (not
@@ -173,24 +190,54 @@ multiple times), and not any one actor.
 
 ## Display modes (% and #)
 
-- **% mode:** rates. Group size is removed, so series are directly comparable. This is
-  the mode for comparison.
-- **# mode:** literal counts on each series' own base: `count = round(pct x base / 100)`.
-  No indexing. Each series is an honest tally over its own population (a celebrity
-  series over its aware base; a category series over its rating base). Because series
-  use different bases, their bar heights are not directly comparable in # mode, that is
-  what % mode is for. The chart y-axis is scaled to the largest series base so all
-  series fit.
+- **% mode:** rates. The denominator (base) is normalised out, so rates are the honest
+  unit for comparing anything, slices of a subject, two celebrities, a celebrity vs a
+  category. This is always a valid comparison.
+- **# mode:** literal counts on a series' own base: `count = round(pct x base / 100)`.
+  No indexing (rescaling to a common base). A count answers "how many of the people
+  asked about this subject said X."
+
+### Counts are only meaningful within a single subject
+
+A count is a rate times an exposure base. In a real panel, respondents are shown a
+random subset of subjects, so each subject (and each slice) has its own exposure/aware
+base, drawn from a different sub-sample. Consequences:
+
+- **Across subjects, counts do not compare, and can invert the truth.** If Pitt (asked
+  of 1,200, 80% confident) shows 960 and Clooney (asked of 1,371, 70% confident) shows
+  ~960, the counts look equal while the rates clearly favour Pitt. The larger exposure
+  base inflated the weaker rate back to the same count. So counts are not a valid
+  cross-subject comparison; rates are.
+- **Within one subject, slices (genders, recognition modes) also sit on different
+  bases**, but those bases partition the same subject's exposure, so they are of
+  commensurate magnitude. Counts there are "roughly" readable as magnitudes, and % is
+  still the comparison unit.
+- **Celebrity (people) vs category (ratings) is also a unit mismatch**, not just a base
+  mismatch, so their counts are doubly incomparable.
+
+### The rule
+
+The page has a subject (the celebrity). # is a within-subject magnitude view, so it is
+offered only on charts whose series are all that subject, measured in its unit (people
+aware of the celebrity):
+
+- **# available:** Total Appeal (the celebrity's any/name/face recognition slices) and
+  Attributes (the celebrity's gender slices). The %/# toggle drives these.
+- **% only (ignore the toggle):** any chart with a category/benchmark series, because a
+  category is a different population and unit (ratings), and a count of category ratings
+  is meaningless on the celebrity's page. This covers the Appeal pie, the Power Factors
+  celebrity-vs-category chart, and the awareness card's category list.
 
 Earlier designs re-indexed every series to one common reference base in # mode. That
-was dropped: indexing just rescales the percentages by a constant, so it conveys nothing
-% mode doesn't already show, while hiding the real counts. # mode now answers "how many
-actual people/ratings", which is what a count mode should mean.
+was dropped: indexing just rescales percentages by a constant, so it conveys nothing %
+mode doesn't already show, while hiding real counts. For the charts that do keep #, each
+series uses its own base and the y-axis is scaled to the largest series base so all
+series fit.
 
-### Base labels
+### Base label
 
-- Celebrity series: `Base: N (aware)` (people aware of the celebrity).
-- Category series: `Base: N (ratings)` (the member-actor rating pool).
+- Celebrity series (bar charts in # mode): `Base: N (aware)`, people aware of the
+  celebrity.
 
 ## E-Score
 
@@ -211,6 +258,9 @@ and sliceable by gender; categories have no E-Score.
    people).
 5. Awareness % is derived from counts (`awareAny / sampleBase`), never stored
    independently.
+6. Counts (# mode) are only shown within a single subject in that subject's unit;
+   comparisons (cross-subject, or any chart with a category series) are shown as rates
+   (%), because counts on different exposure bases are not comparable.
 
 ## Out of scope / not yet implemented
 
