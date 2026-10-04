@@ -5,45 +5,55 @@
 	import EScoreCard from '#lib/components/EScoreCard.svelte'
 	import AwarenessCard from '#lib/components/AwarenessCard.svelte'
 	import NewsCarousel from '#lib/components/NewsCarousel.svelte'
-	import ChartCard from '#lib/components/ChartCard.svelte'
-	import {
-		getScorecard,
-		DATE,
-		totalAppealOption,
-		attributesOption,
-		appealOption,
-		powerFactorsOption,
-		type Mode,
-	} from '#lib/scorecard.ts'
+	import TotalAppealChart from '#lib/components/TotalAppealChart.svelte'
+	import AttributesChart from '#lib/components/AttributesChart.svelte'
+	import AppealChart from '#lib/components/AppealChart.svelte'
+	import PowerFactorsChart from '#lib/components/PowerFactorsChart.svelte'
+	import type { Mode } from '#lib/chart.ts'
+	import type { PageData } from './$types'
 
-	// base is Brad Pitt's total base: the whole page's reference base in # mode.
-	const base = getScorecard('brad-pitt', 'total', DATE).base!
+	let { data }: { data: PageData } = $props()
 
 	let mode = $state<Mode>('pct')
 </script>
 
 <svelte:head>
-	<title>Largo E-Score: Brad Pitt</title>
+	<title>Largo E-Score: {data.celebrity.name}</title>
 </svelte:head>
 
 <main class="content page">
-	<CelebHeader />
+	<CelebHeader name={data.celebrity.name} photoUrl={data.celebrity.photoUrl} />
 
 	<Tabs />
 
 	<Toolbar bind:mode />
 
 	<section class="top-row">
-		<EScoreCard />
-		<AwarenessCard {mode} {base} />
+		<EScoreCard eScore={data.eScore} imdbUrl={data.celebrity.imdbUrl} />
+		<AwarenessCard
+			{mode}
+			sampleBase={data.sampleBase}
+			awareness={data.awareness}
+			categories={data.awarenessCategories}
+		/>
 		<NewsCarousel />
 	</section>
 
 	<section class="chart-grid">
-		<ChartCard title="Total Appeal" option={totalAppealOption(mode, base)} />
-		<ChartCard title="Attributes" option={attributesOption(mode, base)} />
-		<ChartCard title="Appeal" subtitle="Film Personality - Actor" option={appealOption(mode, base)} />
-		<ChartCard title="Power Factors™" option={powerFactorsOption(mode, base)} />
+		<TotalAppealChart {mode} slices={data.totalAppeal} />
+		<AttributesChart {mode} slices={data.attributes} />
+		<AppealChart
+			{mode}
+			categoryName={data.appeal.categoryName}
+			appeal={data.appeal.data}
+			base={data.appeal.base}
+		/>
+		<PowerFactorsChart
+			{mode}
+			celebName={data.celebrity.name}
+			categoryName={data.powerFactors.categoryName}
+			slices={{ celeb: data.powerFactors.celeb, category: data.powerFactors.category }}
+		/>
 	</section>
 </main>
 

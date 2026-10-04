@@ -1,7 +1,11 @@
+<script lang="ts">
+	let { name, photoUrl }: { name: string; photoUrl: string } = $props()
+</script>
+
 <section class="header-card">
 	<div class="badge">E-SCORE<br />CELEBRITY</div>
-	<img class="celeb-photo" src="/images/brad-pitt.jpg" alt="Brad Pitt" />
-	<h1 class="celeb-name">Brad Pitt</h1>
+	<img class="celeb-photo" src={photoUrl} alt={name} />
+	<h1 class="celeb-name">{name}</h1>
 	<div class="header-controls">
 		<div class="control-group">
 			<label for="fielding-date">Fielding date:</label>

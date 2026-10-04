@@ -1,16 +1,12 @@
 <script lang="ts">
-	import { getScorecard, DATE } from '#lib/scorecard.ts'
-
-	const eScore = getScorecard('brad-pitt', 'total', DATE).eScore
+	let { eScore, imdbUrl }: { eScore: number | null; imdbUrl: string } = $props()
 </script>
 
 <div class="card escore-card">
 	<div class="escore-label">E-SCORE</div>
 	<div class="escore-value">{eScore}</div>
 	<button class="btn-onesheet">&#8595; Download Celebrity One-Sheet</button>
-	<a class="imdb-link" href="https://www.imdb.com/fr/name/nm0000093/" target="_blank" rel="noopener"
-		>Link to Celebrity's IMDb page</a
-	>
+	<a class="imdb-link" href={imdbUrl} target="_blank" rel="noopener">Link to Celebrity's IMDb page</a>
 </div>
 
 <style>

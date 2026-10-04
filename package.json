@@ -13,13 +13,20 @@
 		"lint": "eslint .",
 		"lint:fix": "eslint . --fix",
 		"format": "prettier --write .",
-		"format:check": "prettier --check ."
+		"format:check": "prettier --check .",
+		"db:start": "docker compose up -d",
+		"db:generate": "node --env-file=.env node_modules/drizzle-kit/bin.cjs generate",
+		"db:migrate": "node --env-file=.env node_modules/drizzle-kit/bin.cjs migrate",
+		"db:studio": "node --env-file=.env node_modules/drizzle-kit/bin.cjs studio",
+		"db:seed": "node --env-file=.env src/lib/server/db/seed.ts"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
-		"@sveltejs/adapter-static": "^4.0.0",
+		"@sveltejs/adapter-node": "6.0.0",
 		"@sveltejs/kit": "^3.0.0",
 		"@sveltejs/vite-plugin-svelte": "^7.2.0",
+		"@types/node": "24.7.0",
+		"drizzle-kit": "0.31.11",
 		"eslint": "^10.12.0",
 		"eslint-plugin-svelte": "^3.23.0",
 		"prettier": "^3.9.9",
@@ -35,6 +42,9 @@
 		"#lib/*": "./src/lib/*"
 	},
 	"dependencies": {
-		"echarts": "6.1.0"
+		"drizzle-orm": "0.45.3",
+		"echarts": "6.1.0",
+		"postgres": "3.4.9",
+		"valibot": "1.5.0"
 	}
 }

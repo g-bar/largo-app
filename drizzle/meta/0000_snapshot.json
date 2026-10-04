@@ -1,0 +1,439 @@
+{
+  "id": "738f6dca-e6a8-4c1a-b055-391f078587fe",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.awareness": {
+      "name": "awareness",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "awareness_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "celebrity_id": {
+          "name": "celebrity_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "category_id": {
+          "name": "category_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fielding_date": {
+          "name": "fielding_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "gender": {
+          "name": "gender",
+          "type": "gender",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sample_base": {
+          "name": "sample_base",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "aware_any": {
+          "name": "aware_any",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "aware_name": {
+          "name": "aware_name",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "aware_face": {
+          "name": "aware_face",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "awareness_celebrity_id_celebrity_id_fk": {
+          "name": "awareness_celebrity_id_celebrity_id_fk",
+          "tableFrom": "awareness",
+          "tableTo": "celebrity",
+          "columnsFrom": [
+            "celebrity_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "awareness_category_id_category_id_fk": {
+          "name": "awareness_category_id_category_id_fk",
+          "tableFrom": "awareness",
+          "tableTo": "category",
+          "columnsFrom": [
+            "category_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "awareness_celebrity_id_category_id_fielding_date_gender_unique": {
+          "name": "awareness_celebrity_id_category_id_fielding_date_gender_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "celebrity_id",
+            "category_id",
+            "fielding_date",
+            "gender"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "awareness_subject_exactly_one": {
+          "name": "awareness_subject_exactly_one",
+          "value": "(\"awareness\".\"celebrity_id\" is not null) <> (\"awareness\".\"category_id\" is not null)"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.category": {
+      "name": "category",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.celebrity": {
+      "name": "celebrity",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "photo_url": {
+          "name": "photo_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "imdb_url": {
+          "name": "imdb_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.celebrity_category": {
+      "name": "celebrity_category",
+      "schema": "",
+      "columns": {
+        "celebrity_id": {
+          "name": "celebrity_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "category_id": {
+          "name": "category_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "position": {
+          "name": "position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "celebrity_category_celebrity_id_celebrity_id_fk": {
+          "name": "celebrity_category_celebrity_id_celebrity_id_fk",
+          "tableFrom": "celebrity_category",
+          "tableTo": "celebrity",
+          "columnsFrom": [
+            "celebrity_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "celebrity_category_category_id_category_id_fk": {
+          "name": "celebrity_category_category_id_category_id_fk",
+          "tableFrom": "celebrity_category",
+          "tableTo": "category",
+          "columnsFrom": [
+            "category_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "celebrity_category_celebrity_id_category_id_pk": {
+          "name": "celebrity_category_celebrity_id_category_id_pk",
+          "columns": [
+            "celebrity_id",
+            "category_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.question_result": {
+      "name": "question_result",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "question_result_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "celebrity_id": {
+          "name": "celebrity_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "category_id": {
+          "name": "category_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fielding_date": {
+          "name": "fielding_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "gender": {
+          "name": "gender",
+          "type": "gender",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "age_band": {
+          "name": "age_band",
+          "type": "age_band",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "awareness_mode": {
+          "name": "awareness_mode",
+          "type": "awareness_mode",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "question": {
+          "name": "question",
+          "type": "question",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "base": {
+          "name": "base",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data": {
+          "name": "data",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "question_result_celebrity_id_celebrity_id_fk": {
+          "name": "question_result_celebrity_id_celebrity_id_fk",
+          "tableFrom": "question_result",
+          "tableTo": "celebrity",
+          "columnsFrom": [
+            "celebrity_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "question_result_category_id_category_id_fk": {
+          "name": "question_result_category_id_category_id_fk",
+          "tableFrom": "question_result",
+          "tableTo": "category",
+          "columnsFrom": [
+            "category_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "question_result_celebrity_id_category_id_fielding_date_gender_age_band_awareness_mode_question_unique": {
+          "name": "question_result_celebrity_id_category_id_fielding_date_gender_age_band_awareness_mode_question_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "celebrity_id",
+            "category_id",
+            "fielding_date",
+            "gender",
+            "age_band",
+            "awareness_mode",
+            "question"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "question_result_subject_exactly_one": {
+          "name": "question_result_subject_exactly_one",
+          "value": "(\"question_result\".\"celebrity_id\" is not null) <> (\"question_result\".\"category_id\" is not null)"
+        }
+      },
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.age_band": {
+      "name": "age_band",
+      "schema": "public",
+      "values": [
+        "total"
+      ]
+    },
+    "public.awareness_mode": {
+      "name": "awareness_mode",
+      "schema": "public",
+      "values": [
+        "any",
+        "name",
+        "face"
+      ]
+    },
+    "public.gender": {
+      "name": "gender",
+      "schema": "public",
+      "values": [
+        "total",
+        "male",
+        "female"
+      ]
+    },
+    "public.question": {
+      "name": "question",
+      "schema": "public",
+      "values": [
+        "appeal",
+        "attributes",
+        "power_factors",
+        "e_score"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

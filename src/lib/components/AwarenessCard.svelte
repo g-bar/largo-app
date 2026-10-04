@@ -1,57 +1,51 @@
 <script lang="ts">
-	import { getScorecard, DATE, makeView, type Mode } from '#lib/scorecard.ts'
+	import type { Mode } from '#lib/chart.ts'
 
-	const AWARENESS_CATEGORIES = [
-		{ id: 'film-personality-actor', label: 'Film Personality - Actor', color: '#4A76A8' },
-		{
-			id: 'film-personality-actor-action-adventure',
-			label: 'Film Personality - Actor - Action-Adventure',
-			color: '#6B9AD4',
-		},
-		{ id: 'spokesperson', label: 'Spokesperson', color: '#8AB4E8' },
-		{
-			id: 'film-personality-actor-romance',
-			label: 'Film Personality - Actor - Romance',
-			color: '#A8C8F0',
-		},
-		{ id: 'streaming-actor', label: 'Streaming Actor', color: '#C4DBF5' },
-	]
+	// Awareness % (derived from the aware counts in the load) for the celebrity plus
+	// the category-average awareness for each benchmark. Awareness is a whole-sample
+	// fact, so in # mode it reads as a count out of the sample base (sampleBase), e.g.
+	// 60% -> 720 / 1,200.
+	const DOT_COLORS = ['#4A76A8', '#6B9AD4', '#8AB4E8', '#A8C8F0', '#C4DBF5']
 
-	let { mode, base }: { mode: Mode; base: number } = $props()
-	const view = $derived(makeView(mode, base))
+	let {
+		mode,
+		sampleBase,
+		awareness,
+		categories,
+	}: {
+		mode: Mode
+		sampleBase: number
+		awareness: number
+		categories: { id: string; label: string; awareness: number }[]
+	} = $props()
 
-	const bp = $derived(getScorecard('brad-pitt', 'total', DATE))
-	const indexed = $derived(!view.isPct)
-	const categories = $derived(
-		AWARENESS_CATEGORIES.map(cat => ({
-			...cat,
-			pct: getScorecard(cat.id, 'total', DATE).awareness,
-		})),
-	)
+	const indexed = $derived(mode === 'count')
+	const toCount = (pct: number) => Math.round((pct * sampleBase) / 100)
+	const fmt = (pct: number) => (indexed ? String(toCount(pct)) : pct + '%')
 </script>
 
 <div class="card awareness-card">
 	<div class="awareness-title">Awareness</div>
 	<div class="awareness-value">
 		{#if indexed}
-			{view.value(bp.awareness)}<sup class="awareness-base"> / {view.refBase.toLocaleString()} *</sup>
+			{toCount(awareness)}<sup class="awareness-base"> / {sampleBase.toLocaleString()} *</sup>
 		{:else}
-			{bp.awareness}%
+			{awareness}%
 		{/if}
 	</div>
 	<div class="awareness-sub">
 		Category Averages for this Celebrity:{indexed ? ' *' : ''}
 	</div>
 	<ul class="awareness-list">
-		{#each categories as cat (cat.id)}
+		{#each categories as cat, i (cat.id)}
 			<li class:indexed>
-				<span class="dot" style="background:{cat.color}"></span>
+				<span class="dot" style="background:{DOT_COLORS[i % DOT_COLORS.length]}"></span>
 				<span class="cat-name">{cat.label}</span>
-				<span class="cat-pct">{view.fmt(cat.pct)}</span>
+				<span class="cat-pct">{fmt(cat.awareness)}</span>
 			</li>
 		{/each}
 	</ul>
-	<div class="awareness-indexed-note" hidden={!indexed}>* Brad Pitt respondents base</div>
+	<div class="awareness-indexed-note" hidden={!indexed}>* Count out of sample base</div>
 </div>
 
 <style>

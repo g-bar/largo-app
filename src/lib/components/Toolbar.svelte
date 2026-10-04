@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Mode } from '#lib/scorecard.ts'
+	import type { Mode } from '#lib/chart.ts'
 
 	let { mode = $bindable() }: { mode: Mode } = $props()
 </script>
