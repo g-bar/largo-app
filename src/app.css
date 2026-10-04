@@ -1,0 +1,45 @@
+:root {
+	--brand-red: #be1e2d;
+	--page-bg: #f8f9fa;
+	--card-bg: #ffffff;
+	--control-border: #d1d1d1;
+	--heading-text: #1f2937;
+	--body-text: #515a68;
+	--muted-text: #7a808d;
+	--muted-text-2: #949494;
+	--axis-text: #b8bdc6;
+	--awareness-purple: #7c5caa;
+	--shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	font-family:
+		'Roboto',
+		-apple-system,
+		BlinkMacSystemFont,
+		'Segoe UI',
+		sans-serif;
+	background: var(--page-bg);
+	color: var(--body-text);
+	font-size: 14px;
+	line-height: 1.4;
+}
+
+.content {
+	width: 986px;
+	max-width: 100%;
+	margin: 0 auto;
+	padding: 24px;
+}
+
+.card {
+	background: var(--card-bg);
+	border-radius: 8px;
+	box-shadow: var(--shadow);
+}
