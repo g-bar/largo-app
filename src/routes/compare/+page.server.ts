@@ -60,12 +60,20 @@ export const load: PageServerLoad = async ({ url }) => {
 		}),
 	)
 
+	// Lookup maps for the UI.
+	const celebrityLookup = new Map(celebrities.map(c => [c.id, c]))
+	const celebrityIds = new Set(celebrities.map(c => c.id))
+	const categoryIds = new Set(categories.map(c => c.id))
+
 	return {
 		filter: { fieldingDate, gender, ageBand },
 		metric,
 		selectedIds,
 		subjects: results.filter(r => r !== null),
-		pickers: { celebrities, categories },
+		categories,
+		celebrityLookup,
+		celebrityIds,
+		categoryIds,
 		fieldingDates,
 	}
 }

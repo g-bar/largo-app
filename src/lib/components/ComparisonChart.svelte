@@ -3,7 +3,7 @@
 	import ChartCard from './ChartCard.svelte'
 	import ChartEmpty from './ChartEmpty.svelte'
 	import { type AppealDist, barBase, boxScores, makeView, paletteColor } from '#lib/chart.ts'
-	import type { AppealData, CompareMetric, OrderedMap, QuestionData } from '#lib/server/types.ts'
+	import type {  CompareMetric, OrderedMap, QuestionData } from '#lib/server/types.ts'
 
 	// Compare N subjects on one metric. The layout is driven by the metric's data shape:
 	//   - awareness / e_score (scalar): one bar per subject (x-axis = subjects).
@@ -35,6 +35,7 @@
 	// Pull the comparable value array for a subject in key order.
 	function valuesFor(s: Subject, cats: string[]): number[] {
 		if (metric === 'appeal') return boxScores(s.data as AppealDist)
+		if (isScalar) return [s.data as number]
 		const map = s.data as OrderedMap
 		return cats.map(k => map[k])
 	}
@@ -42,28 +43,10 @@
 	const option = $derived.by<EChartsOption | undefined>(() => {
 		if (subjects.length === 0) return undefined
 
-		if (isScalar) {
-			// Scalar: one bar per subject. x = subject names, single series.
-			const names = subjects.map(s => s.name)
-			const opt = barBase(view, names, 100, 25, 30)
-			opt.legend = undefined
-			opt.series = [
-				{
-					type: 'bar',
-					data: subjects.map((s, i) => ({
-						value: s.data as number,
-						itemStyle: { color: paletteColor(i) },
-					})),
-					label: view.barLabel(),
-					barMaxWidth: 48,
-				},
-			]
-			return opt
-		}
-
 		// Grouped bars: x = the metric's keys, one series per subject.
+		// Scalar metrics (awareness, e_score) are treated as single-value grouped bars.
 		const first = subjects[0]
-		const keys = metric === 'appeal' ? APPEAL_CATS : Object.keys(first.data as OrderedMap)
+		const keys = metric === 'appeal' ? APPEAL_CATS : isScalar ? ['Score'] : Object.keys(first.data as OrderedMap)
 		const pctMax = metric === 'appeal' ? 100 : 60
 		const interval = metric === 'appeal' ? 25 : 15
 		const opt = barBase(view, keys, pctMax, interval, 30)

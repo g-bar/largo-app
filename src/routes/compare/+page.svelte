@@ -30,9 +30,23 @@
 	const dateLabel = (iso: string) =>
 		new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
 
-	// Categories can't be compared on E-Score, so they drop out of the picker there.
+	// Categories can't be compared on E-Score.
 	const categoriesAllowed = $derived(data.metric !== 'e_score')
-	const selected = $derived(new Set(data.selectedIds))
+
+	// Celebrity search state.
+	let searchQuery = $state('')
+	let searchResults = $state<{ id: string; name: string }[]>([])
+	let searchPending = $state(false)
+	const selectedCelebIds = $derived(new Set(data.selectedIds.filter(id => data.celebrityIds.has(id))))
+
+	// Category filter state.
+	const selectedCategoryId = $derived(
+		categoriesAllowed ? (data.selectedIds.find(id => data.categoryIds.has(id)) ?? null) : null,
+	)
+
+	// Total selected count (celebrities + optional category).
+	const selectedCount = $derived(selectedCelebIds.size + (selectedCategoryId ? 1 : 0))
+	const atCap = $derived(selectedCount >= MAX)
 
 	function navigate(params: URLSearchParams) {
 		goto(`/compare?${params}`, { reset: false })
@@ -41,25 +55,74 @@
 	function setParam(key: string, value: string) {
 		const params = new URLSearchParams(page.url.search)
 		params.set(key, value)
-		// Switching to E-Score drops any selected categories from the URL.
-		if (key === 'metric' && value === 'e_score') {
-			const kept = data.selectedIds.filter(id => data.pickers.celebrities.some(c => c.id === id))
+		// Switching to E-Score drops any selected category.
+		if (key === 'metric' && value === 'e_score' && selectedCategoryId) {
+			const kept = data.selectedIds.filter(id => !data.categoryIds.has(id))
 			params.set('subjects', kept.join(','))
 		}
 		navigate(params)
 	}
 
-	// Toggle a subject in/out of the comparison, capped at MAX.
-	function toggleSubject(id: string) {
-		const next = new Set(selected)
-		if (next.has(id)) next.delete(id)
-		else if (next.size < MAX) next.add(id)
+	// Rebuild URL subjects param from current selection.
+	function updateSubjects(celebIds: Set<string>, categoryId: string | null) {
+		const ids = [...celebIds]
+		if (categoryId) ids.push(categoryId)
 		const params = new URLSearchParams(page.url.search)
-		params.set('subjects', [...next].join(','))
+		params.set('subjects', ids.join(','))
 		navigate(params)
 	}
 
-	const atCap = $derived(selected.size >= MAX)
+	// Toggle celebrity in/out of selection.
+	function toggleCelebrity(id: string) {
+		const next = new Set(selectedCelebIds)
+		if (next.has(id)) {
+			next.delete(id)
+		} else if (!atCap) {
+			next.add(id)
+		}
+		updateSubjects(next, selectedCategoryId)
+	}
+
+	// Set category filter (replaces any previous category).
+	function setCategory(id: string | null) {
+		updateSubjects(selectedCelebIds, id)
+	}
+
+	// Remove a selected celebrity (from tag click).
+	function removeCelebrity(id: string) {
+		const next = new Set(selectedCelebIds)
+		next.delete(id)
+		updateSubjects(next, selectedCategoryId)
+	}
+
+	// Search celebrities with optional category constraint.
+	async function searchCelebrities(q: string) {
+		if (!q.trim()) {
+			searchResults = []
+			return
+		}
+		searchPending = true
+		try {
+			const catParam = selectedCategoryId ? `&category=${selectedCategoryId}` : ''
+			const res = await fetch(`/api/celebrities/search?q=${encodeURIComponent(q)}${catParam}`)
+			if (res.ok) {
+				searchResults = await res.json()
+			}
+		} finally {
+			searchPending = false
+		}
+	}
+
+	// Debounced search on input.
+	$effect(() => {
+		const q = searchQuery
+		if (!q.trim()) {
+			searchResults = []
+			return
+		}
+		const t = setTimeout(() => searchCelebrities(q), 200)
+		return () => clearTimeout(t)
+	})
 </script>
 
 <svelte:head>
@@ -105,37 +168,67 @@
 	<div class="compare-grid">
 		<section class="picker card">
 			<div class="picker-head">
-				Subjects <span class="count">({selected.size}/{MAX})</span>
+				Subjects <span class="count">({selectedCount}/{MAX})</span>
 			</div>
 
-			<div class="picker-group-label">Celebrities</div>
-			<ul class="picker-list">
-				{#each data.pickers.celebrities as c (c.id)}
-					{@const isOn = selected.has(c.id)}
-					<li>
-						<label class="picker-item" class:disabled={!isOn && atCap}>
-							<input type="checkbox" checked={isOn} disabled={!isOn && atCap} onchange={() => toggleSubject(c.id)} />
-							<span>{c.name}</span>
-						</label>
-					</li>
-				{/each}
-			</ul>
-
 			{#if categoriesAllowed}
-				<div class="picker-group-label">Categories</div>
-				<ul class="picker-list">
-					{#each data.pickers.categories as c (c.id)}
-						{@const isOn = selected.has(c.id)}
+				<div class="control-group" style="margin-bottom: 12px">
+					<label for="category">Category</label>
+					<select id="category" value={selectedCategoryId ?? ''} onchange={e => setCategory(e.currentTarget.value || null)}>
+						<option value="">None</option>
+						{#each data.categories as c (c.id)}
+							<option value={c.id}>{c.name}</option>
+						{/each}
+					</select>
+				</div>
+			{:else}
+				<div class="picker-note" style="margin-bottom: 12px">Categories have no E-Score.</div>
+			{/if}
+
+			<div class="control-group" style="margin-bottom: 8px">
+				<label for="celebrity-search">Celebrity Search</label>
+				<input
+					id="celebrity-search"
+					type="text"
+					placeholder="Type to search..."
+					bind:value={searchQuery}
+				/>
+			</div>
+
+			{#if selectedCelebIds.size > 0}
+				<div class="selected-tags">
+					{#each [...selectedCelebIds] as id (id)}
+						{@const celeb = data.celebrityLookup.get(id)}
+						{#if celeb}
+							<button class="tag" onclick={() => removeCelebrity(id)}>
+								{celeb.name}
+								<span class="tag-remove">×</span>
+							</button>
+						{/if}
+					{/each}
+				</div>
+			{/if}
+
+			{#if searchQuery && searchResults.length > 0}
+				<ul class="search-results">
+					{#each searchResults as r (r.id)}
+						{@const isSelected = selectedCelebIds.has(r.id)}
 						<li>
-							<label class="picker-item" class:disabled={!isOn && atCap}>
-								<input type="checkbox" checked={isOn} disabled={!isOn && atCap} onchange={() => toggleSubject(c.id)} />
-								<span>{c.name}</span>
-							</label>
+							<button
+								class="search-result-item"
+								class:selected={isSelected}
+								class:disabled={!isSelected && atCap}
+								disabled={!isSelected && atCap}
+								onclick={() => toggleCelebrity(r.id)}
+							>
+								{r.name}
+								{#if isSelected}<span class="check">✓</span>{/if}
+							</button>
 						</li>
 					{/each}
 				</ul>
-			{:else}
-				<div class="picker-note">Categories have no E-Score.</div>
+			{:else if searchQuery && !searchPending && searchResults.length === 0}
+				<div class="picker-note">No celebrities found.</div>
 			{/if}
 		</section>
 
@@ -163,7 +256,8 @@
 		font-size: 12px;
 		color: var(--muted-text);
 	}
-	.control-group select {
+	.control-group select,
+	.control-group input {
 		font-family: inherit;
 		font-size: 13px;
 		color: var(--heading-text);
@@ -171,6 +265,10 @@
 		border: 1px solid var(--control-border);
 		border-radius: 4px;
 		background: #fff;
+	}
+	.control-group input {
+		width: 100%;
+		box-sizing: border-box;
 	}
 
 	.compare-grid {
@@ -194,40 +292,69 @@
 		font-weight: 500;
 		color: var(--muted-text);
 	}
-	.picker-group-label {
-		font-size: 11px;
-		text-transform: uppercase;
-		letter-spacing: 0.5px;
+	.picker-note {
+		font-size: 12px;
 		color: var(--muted-text);
-		margin: 10px 0 6px;
 	}
-	.picker-list {
+
+	.selected-tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+		margin-bottom: 8px;
+	}
+	.tag {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		font-size: 12px;
+		padding: 4px 8px;
+		background: var(--page-bg);
+		border: 1px solid var(--control-border);
+		border-radius: 4px;
+		cursor: pointer;
+	}
+	.tag:hover {
+		background: #e5e7eb;
+	}
+	.tag-remove {
+		font-size: 14px;
+		color: var(--muted-text);
+	}
+
+	.search-results {
 		list-style: none;
 		display: flex;
 		flex-direction: column;
 		gap: 2px;
+		margin: 0;
+		padding: 0;
 	}
-	.picker-item {
-		display: flex;
-		align-items: center;
-		gap: 8px;
+	.search-result-item {
+		width: 100%;
+		text-align: left;
 		font-size: 13px;
-		color: var(--body-text);
-		padding: 5px 4px;
+		padding: 6px 8px;
+		border: none;
 		border-radius: 4px;
+		background: transparent;
 		cursor: pointer;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
 	}
-	.picker-item:hover {
+	.search-result-item:hover {
 		background: var(--page-bg);
 	}
-	.picker-item.disabled {
+	.search-result-item.selected {
+		background: #fef3c7;
+	}
+	.search-result-item.disabled {
 		opacity: 0.4;
 		cursor: not-allowed;
 	}
-	.picker-note {
-		font-size: 12px;
+	.search-result-item .check {
 		color: var(--muted-text);
-		margin-top: 6px;
 	}
 
 	@media (max-width: 768px) {
