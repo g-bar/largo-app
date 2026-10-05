@@ -1,0 +1,24 @@
+node_modules
+.svelte-kit
+build
+.git
+.gitignore
+
+# Local env and secrets
+.env
+.env.*
+!.env.example
+
+# Terraform / deployment, local only
+infra
+
+# Editor / OS
+.vscode
+.DS_Store
+Thumbs.db
+
+# Docs
+*.md
+
+# Local Postgres compose (not needed in the image)
+compose.yaml

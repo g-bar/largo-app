@@ -21,3 +21,14 @@ Thumbs.db
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Terraform (infra/ is committed; keep state and local cache out)
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars.local
+crash.log
+crash.*.log
+# Keep the real backend/secret-bearing override files out, if ever added
+infra/*.auto.tfvars
+infra/backend.override.tf
