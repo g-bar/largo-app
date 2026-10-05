@@ -46,6 +46,7 @@
 			// Scalar: one bar per subject. x = subject names, single series.
 			const names = subjects.map(s => s.name)
 			const opt = barBase(view, names, 100, 25, 30)
+			opt.grid = { ...(opt.grid as object), bottom: 100 }
 			opt.legend = undefined
 			opt.series = [
 				{
@@ -67,6 +68,7 @@
 		const pctMax = metric === 'appeal' ? 100 : 60
 		const interval = metric === 'appeal' ? 25 : 15
 		const opt = barBase(view, keys, pctMax, interval, 30)
+		opt.grid = { ...(opt.grid as object), bottom: 100 }
 		opt.series = subjects.map((s, i) => ({
 			name: s.name,
 			type: 'bar' as const,

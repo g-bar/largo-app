@@ -16,7 +16,7 @@
 			<!-- svelte-ignore a11y_invalid_attribute -->
 			<li><a href="#">DASHBOARD</a></li>
 			<!-- svelte-ignore a11y_invalid_attribute -->
-			<li><a href="#" class:active={!onList && !onCompare}>SMART SEARCH</a></li>
+			<li><a href="#">SMART SEARCH</a></li>
 			<li><a href="/" class:active={onList}>LIST VIEW</a></li>
 			<li><a href="/compare" class:active={onCompare}>COMPARE</a></li>
 		</ul>
