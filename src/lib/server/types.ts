@@ -54,7 +54,7 @@ export type PageParams = v.InferOutput<typeof pageParamsSchema>
 // is a comma-separated list in the URL (e.g. ?subjects=brad-pitt,margot-robbie); it is
 // parsed to a string array, trimmed, de-duped, and capped. Categories have no E-Score,
 // so when metric = e_score the load drops any category ids (enforced at read time).
-export const COMPARE_MAX_SUBJECTS = 5
+export const COMPARE_MAX_SUBJECTS = 6
 
 // Comparison metrics = the gated questions plus awareness. Awareness is not a DB
 // `question` (it lives in the awareness table and its % is derived), so the compare

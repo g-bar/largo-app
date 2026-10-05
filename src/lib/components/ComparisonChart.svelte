@@ -12,7 +12,7 @@
 	// Always rendered as rates (%). Cross-subject counts sit on different exposure bases
 	// and can invert the truth, so comparison is percent-only (no %/# toggle). Appeal is
 	// shown as box scores (Top/Bottom Two/Three), the legible comparison form.
-	type Subject = { id: string; name: string; kind: 'celebrity' | 'category'; data: QuestionData }
+	type Subject = { id: string; name: string; kind: 'celebrity' | 'category'; data: QuestionData; color?: string }
 	let { metric, subjects }: { metric: CompareMetric; subjects: Subject[] } = $props()
 
 	const METRIC_TITLES: Record<CompareMetric, string> = {
@@ -35,7 +35,6 @@
 	// Pull the comparable value array for a subject in key order.
 	function valuesFor(s: Subject, cats: string[]): number[] {
 		if (metric === 'appeal') return boxScores(s.data as AppealDist)
-		if (isScalar) return [s.data as number]
 		const map = s.data as OrderedMap
 		return cats.map(k => map[k])
 	}
@@ -43,10 +42,28 @@
 	const option = $derived.by<EChartsOption | undefined>(() => {
 		if (subjects.length === 0) return undefined
 
+		if (isScalar) {
+			// Scalar: one bar per subject. x = subject names, single series.
+			const names = subjects.map(s => s.name)
+			const opt = barBase(view, names, 100, 25, 30)
+			opt.legend = undefined
+			opt.series = [
+				{
+					type: 'bar',
+					data: subjects.map((s, i) => ({
+						value: s.data as number,
+						itemStyle: { color: s.color ?? paletteColor(i) },
+					})),
+					label: view.barLabel(),
+					barMaxWidth: 48,
+				},
+			]
+			return opt
+		}
+
 		// Grouped bars: x = the metric's keys, one series per subject.
-		// Scalar metrics (awareness, e_score) are treated as single-value grouped bars.
 		const first = subjects[0]
-		const keys = metric === 'appeal' ? APPEAL_CATS : isScalar ? ['Score'] : Object.keys(first.data as OrderedMap)
+		const keys = metric === 'appeal' ? APPEAL_CATS : Object.keys(first.data as OrderedMap)
 		const pctMax = metric === 'appeal' ? 100 : 60
 		const interval = metric === 'appeal' ? 25 : 15
 		const opt = barBase(view, keys, pctMax, interval, 30)
@@ -54,7 +71,7 @@
 			name: s.name,
 			type: 'bar' as const,
 			data: valuesFor(s, keys),
-			itemStyle: { color: paletteColor(i) },
+			itemStyle: { color: s.color ?? paletteColor(i) },
 		}))
 		return opt
 	})

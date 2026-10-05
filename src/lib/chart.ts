@@ -10,7 +10,7 @@ export const GREY_BAR = '#D1D5DB'
 
 // Distinct series colors, cycled per subject in the comparison chart. First is the
 // brand red so a single-subject compare matches the scorecard charts.
-export const PALETTE = ['#BE1E2D', '#4A76A8', '#E8A8C8', '#5BA85B', '#E89A3C']
+export const PALETTE = ['#BE1E2D', '#4A76A8', '#E8A8C8', '#5BA85B', '#E89A3C', '#7E57A0']
 export const paletteColor = (i: number) => PALETTE[i % PALETTE.length]
 
 export type Mode = 'pct' | 'count'

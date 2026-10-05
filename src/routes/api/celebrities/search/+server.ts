@@ -1,40 +1,37 @@
 import { json } from '@sveltejs/kit'
-import { ilike, and, eq } from 'drizzle-orm'
+import { ilike } from 'drizzle-orm'
 import { db } from '#lib/server/db/index.ts'
-import { celebrity, celebrityCategory } from '#lib/server/db/schema.ts'
+import { category, celebrity } from '#lib/server/db/schema.ts'
 import type { RequestHandler } from './$types'
 
-// Search celebrities by name prefix, optionally filtered by category.
-// Used by the compare page subject picker.
+// Search subjects by name prefix: celebrities always, categories when
+// includeCategories is set. Used by the compare page subject picker.
 export const GET: RequestHandler = async ({ url }) => {
 	const q = (url.searchParams.get('q') || '').trim()
-	const categoryId = url.searchParams.get('category')
+	const includeCategories = url.searchParams.get('includeCategories') === '1'
 
 	if (!q) return json([])
 
-	if (categoryId) {
-		// Search within a category: join through celebrity_category.
-		const rows = await db
-			.select({ id: celebrity.id, name: celebrity.name })
-			.from(celebrity)
-			.innerJoin(celebrityCategory, eq(celebrityCategory.celebrityId, celebrity.id))
-			.where(
-				and(
-					ilike(celebrity.name, `${q}%`),
-					eq(celebrityCategory.categoryId, categoryId),
-				),
-			)
-			.orderBy(celebrity.name)
-			.limit(20)
-		return json(rows)
-	}
-
-	// No category filter: search all celebrities.
-	const rows = await db
+	const celebrities = await db
 		.select({ id: celebrity.id, name: celebrity.name })
 		.from(celebrity)
 		.where(ilike(celebrity.name, `${q}%`))
 		.orderBy(celebrity.name)
 		.limit(20)
-	return json(rows)
+
+	const results: { id: string; name: string; kind: 'celebrity' | 'category' }[] = celebrities.map(
+		r => ({ ...r, kind: 'celebrity' }),
+	)
+
+	if (includeCategories) {
+		const categories = await db
+			.select({ id: category.id, name: category.name })
+			.from(category)
+			.where(ilike(category.name, `${q}%`))
+			.orderBy(category.name)
+			.limit(20)
+		for (const r of categories) results.push({ ...r, kind: 'category' })
+	}
+
+	return json(results)
 }

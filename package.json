@@ -45,6 +45,7 @@
 		"drizzle-orm": "0.45.3",
 		"echarts": "6.1.0",
 		"postgres": "3.4.9",
+		"svelte-dnd-action": "0.9.80",
 		"valibot": "1.5.0"
 	}
 }
