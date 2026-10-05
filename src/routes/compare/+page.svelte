@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
 	import { page } from '$app/state'
+	import { untrack } from 'svelte'
 	import { flip } from 'svelte/animate'
 	import { dndzone, SHADOW_ITEM_MARKER_PROPERTY_NAME } from 'svelte-dnd-action'
 	import ComparisonChart from '#lib/components/ComparisonChart.svelte'
@@ -43,18 +44,24 @@
 	const selectedCount = $derived(selectedIds.length)
 	const atCap = $derived(selectedCount >= MAX)
 
-	// Draggable badge order. Dragging a badge reorders the subjects everywhere: the
-	// badges, the per-subject colors, and the chart series. Reset to the server order
-	// only when the id set changes (add/remove), not on every re-render.
+	// Draggable badge list (the array svelte-dnd-action owns and reorders). Reset to the
+	// server order only when the id set changes (add/remove). When the slice changes
+	// (same ids, new E-Score), refresh each item's data in place but keep the drag order.
 	type Badge = PageData['badges'][number]
 	let badgeItems = $state<Badge[]>([])
 	let lastBadgeKey = ''
 	$effect(() => {
-		const key = data.badges.map(b => b.id).join('|')
-		if (key !== lastBadgeKey) {
-			lastBadgeKey = key
-			badgeItems = data.badges
-		}
+		const serverIds = data.badges.map(b => b.id)
+		const key = serverIds.join('|')
+		untrack(() => {
+			if (key !== lastBadgeKey) {
+				lastBadgeKey = key
+				badgeItems = data.badges
+			} else {
+				const byId = new Map(data.badges.map(b => [b.id, b]))
+				badgeItems = badgeItems.map(b => byId.get(b.id) ?? b)
+			}
+		})
 	})
 	const orderedIds = $derived(badgeItems.map(b => b.id))
 
@@ -223,7 +230,8 @@
 	{#if badgeItems.length > 0}
 		<section
 			class="badge-row"
-			use:dndzone={{ items: badgeItems, flipDurationMs: FLIP_MS, dropTargetStyle: {}, transformDraggedElement: dimDragged }}
+			class:draggable={badgeItems.length > 1}
+			use:dndzone={{ items: badgeItems, flipDurationMs: FLIP_MS, dropTargetStyle: {}, transformDraggedElement: dimDragged, dragDisabled: badgeItems.length < 2 }}
 			onconsider={handleBadgeConsider}
 			onfinalize={handleBadgeFinalize}
 		>
@@ -416,9 +424,11 @@
 		flex-direction: column;
 		align-items: center;
 		text-align: center;
+	}
+	.draggable .celeb-badge {
 		cursor: grab;
 	}
-	.celeb-badge:active {
+	.draggable .celeb-badge:active {
 		cursor: grabbing;
 	}
 	.category-badge {
