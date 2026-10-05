@@ -122,6 +122,13 @@
 		navigate(params)
 	}
 
+	// The compare view can't render a one-sheet, so each celebrity badge links to its own
+	// scorecard page carrying the current fielding/gender/age filters.
+	const scorecardHref = (id: string) => {
+		const p = new URLSearchParams(data.filter as Record<string, string>)
+		return `/celebrity/${id}?${p}`
+	}
+
 	// Toggle a subject (celebrity or category) in/out of selection. Operates on the
 	// current drag order (orderedIds), so removing one keeps the rest arranged as the
 	// user left them; adding appends to the end.
@@ -171,7 +178,11 @@
 	<section class="filter-bar card">
 		<div class="control-group">
 			<label for="fielding-date">Fielding date</label>
-			<select id="fielding-date" value={data.filter.fieldingDate} onchange={e => setParam('fieldingDate', e.currentTarget.value)}>
+			<select
+				id="fielding-date"
+				value={data.filter.fieldingDate}
+				onchange={e => setParam('fieldingDate', e.currentTarget.value)}
+			>
 				{#each data.fieldingDates as d (d)}
 					<option value={d}>{dateLabel(d)}</option>
 				{/each}
@@ -231,7 +242,13 @@
 		<section
 			class="badge-row"
 			class:draggable={badgeItems.length > 1}
-			use:dndzone={{ items: badgeItems, flipDurationMs: FLIP_MS, dropTargetStyle: {}, transformDraggedElement: dimDragged, dragDisabled: badgeItems.length < 2 }}
+			use:dndzone={{
+				items: badgeItems,
+				flipDurationMs: FLIP_MS,
+				dropTargetStyle: {},
+				transformDraggedElement: dimDragged,
+				dragDisabled: badgeItems.length < 2,
+			}}
 			onconsider={handleBadgeConsider}
 			onfinalize={handleBadgeFinalize}
 		>
@@ -240,7 +257,11 @@
 					{#if isShadow(b)}
 						<div class="badge-placeholder"></div>
 					{:else}
-						<div class="celeb-badge" class:category-badge={b.kind === 'category'} style="background: {colorOf.get(b.id)}">
+						<div
+							class="celeb-badge"
+							class:category-badge={b.kind === 'category'}
+							style="background: {colorOf.get(b.id)}"
+						>
 							<button class="badge-remove" aria-label="Remove" onclick={() => toggleSubject(b.id)}>×</button>
 
 							{#if b.kind === 'celebrity'}
@@ -254,9 +275,9 @@
 									</button>
 									{#if openMenuId === b.id}
 										<div class="badge-menu-items">
-											<button class="badge-menu-item" onclick={() => (openMenuId = null)}>
-												&#8595; Download Celebrity One-Sheet
-											</button>
+											<a class="badge-menu-item" href={scorecardHref(b.id)} onclick={() => (openMenuId = null)}>
+												View Celebrity Scorecard
+											</a>
 											<a
 												class="badge-menu-item"
 												href={b.imdbUrl}
@@ -273,7 +294,9 @@
 								<div class="badge-name">{b.name}</div>
 								<div class="badge-label">E-SCORE</div>
 								<div class="badge-value">{b.eScore ?? '—'}</div>
-								<button class="btn-onesheet" style="color: {colorOf.get(b.id)}">&#8595; Download Celebrity One-Sheet</button>
+								<a class="btn-onesheet" href={scorecardHref(b.id)} style="color: {colorOf.get(b.id)}"
+									>View Celebrity Scorecard</a
+								>
 								<a class="imdb-link" href={b.imdbUrl} target="_blank" rel="noopener">Link to Celebrity's IMDb page</a>
 							{:else}
 								<div class="badge-label">CATEGORY</div>
@@ -407,14 +430,14 @@
 		flex: 1;
 	}
 	.badge-placeholder {
-		min-height: 220px;
+		min-height: 262px;
 		border: 2px dashed var(--control-border);
 		border-radius: 8px;
 		background: transparent;
 	}
 	.celeb-badge {
 		position: relative;
-		min-height: 220px;
+		min-height: 262px;
 		background: var(--brand-red);
 		color: #fff;
 		border-radius: 8px;
@@ -534,6 +557,9 @@
 		padding: 7px 8px;
 		cursor: pointer;
 		width: 100%;
+		display: block;
+		text-align: center;
+		text-decoration: none;
 	}
 	.imdb-link {
 		color: #fff;
@@ -575,7 +601,7 @@
 		/* With the actions hidden, the card can be shorter. */
 		.celeb-badge,
 		.badge-placeholder {
-			min-height: 150px;
+			min-height: 164px;
 		}
 	}
 </style>

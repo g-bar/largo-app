@@ -10,11 +10,30 @@
 	import AppealChart from '#lib/components/AppealChart.svelte'
 	import PowerFactorsChart from '#lib/components/PowerFactorsChart.svelte'
 	import type { Mode } from '#lib/chart.ts'
+	import { downloadCsv, fileBase, scorecardCsv } from '#lib/oneSheet.ts'
+	import { buildOneSheet } from '#lib/oneSheetPdf.ts'
 	import type { PageData } from './$types'
 
 	let { data }: { data: PageData } = $props()
 
 	let mode = $state<Mode>('pct')
+
+	function exportCsv() {
+		downloadCsv(fileBase(data.celebrity.name, data.filter), scorecardCsv(data))
+	}
+
+	function downloadOneSheet() {
+		buildOneSheet(
+			{
+				name: data.celebrity.name,
+				eScore: data.eScore,
+				awareness: data.awareness,
+				filter: data.filter,
+				categories: data.awarenessCategories,
+			},
+			fileBase(data.celebrity.name, data.filter),
+		)
+	}
 </script>
 
 <svelte:head>
@@ -27,6 +46,7 @@
 		photoUrl={data.celebrity.photoUrl}
 		filter={data.filter}
 		fieldingDates={data.fieldingDates}
+		onExport={exportCsv}
 	/>
 
 	<Tabs />
@@ -34,7 +54,7 @@
 	<Toolbar bind:mode />
 
 	<section class="top-row">
-		<EScoreCard eScore={data.eScore} imdbUrl={data.celebrity.imdbUrl} />
+		<EScoreCard eScore={data.eScore} imdbUrl={data.celebrity.imdbUrl} onDownload={downloadOneSheet} />
 		<AwarenessCard awareness={data.awareness} categories={data.awarenessCategories} />
 		<NewsCarousel />
 	</section>

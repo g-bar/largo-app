@@ -71,7 +71,7 @@
 </script>
 
 {#if option}
-	<ChartCard {title} {subtitle} {option} />
+	<ChartCard {title} {subtitle} {option} exportId="appeal" />
 {:else if data === null}
 	<ChartEmpty {title} {subtitle} />
 {:else}

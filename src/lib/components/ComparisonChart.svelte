@@ -3,7 +3,7 @@
 	import ChartCard from './ChartCard.svelte'
 	import ChartEmpty from './ChartEmpty.svelte'
 	import { type AppealDist, barBase, boxScores, makeView, paletteColor } from '#lib/chart.ts'
-	import type {  CompareMetric, OrderedMap, QuestionData } from '#lib/server/types.ts'
+	import type { CompareMetric, OrderedMap, QuestionData } from '#lib/server/types.ts'
 
 	// Compare N subjects on one metric. The layout is driven by the metric's data shape:
 	//   - awareness / e_score (scalar): one bar per subject (x-axis = subjects).

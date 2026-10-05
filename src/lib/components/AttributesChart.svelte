@@ -40,7 +40,10 @@
 		opt.series = series.map(s => ({
 			name: s.name,
 			type: 'bar' as const,
-			data: view.series(cats.map(k => s.slice.data[k]), s.slice.base),
+			data: view.series(
+				cats.map(k => s.slice.data[k]),
+				s.slice.base,
+			),
 			itemStyle: { color: s.color },
 			label: s.name === 'Total' ? view.barLabel() : undefined,
 		}))
@@ -49,7 +52,7 @@
 </script>
 
 {#if option}
-	<ChartCard title="Attributes" {option} />
+	<ChartCard title="Attributes" {option} exportId="attributes" />
 {:else if data}
 	<ChartEmpty title="Attributes" />
 {:else}

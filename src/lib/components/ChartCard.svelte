@@ -1,8 +1,14 @@
 <script lang="ts">
 	import * as echarts from 'echarts'
 	import type { EChartsOption } from 'echarts'
+	import { registerChartImage } from '#lib/chartRegistry.ts'
 
-	let { title, subtitle, option }: { title: string; subtitle?: string; option: EChartsOption } = $props()
+	let {
+		title,
+		subtitle,
+		option,
+		exportId,
+	}: { title: string; subtitle?: string; option: EChartsOption; exportId?: string } = $props()
 
 	let el: HTMLDivElement
 	let headEl: HTMLDivElement
@@ -25,8 +31,14 @@
 			if (node.offsetWidth) chart.resize()
 		})
 		observer.observe(node)
+		// Only the card chart (not the modal) feeds the one-sheet PDF.
+		const unregister =
+			exportId && node === el
+				? registerChartImage(exportId, () => chart.getDataURL({ type: 'png', pixelRatio: 2, backgroundColor: '#fff' }))
+				: undefined
 		return () => {
 			observer.disconnect()
+			unregister?.()
 			chart.dispose()
 		}
 	}

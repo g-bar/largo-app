@@ -7,11 +7,13 @@
 		photoUrl,
 		filter,
 		fieldingDates,
+		onExport,
 	}: {
 		name: string
 		photoUrl: string
 		filter: { fieldingDate: string; gender: string; ageBand: string }
 		fieldingDates: string[]
+		onExport: () => void
 	} = $props()
 
 	const genderOptions = [
@@ -71,7 +73,7 @@
 				{/each}
 			</select>
 		</div>
-		<button class="btn-export">Export</button>
+		<button class="btn-export" onclick={onExport}>Export</button>
 	</div>
 </section>
 

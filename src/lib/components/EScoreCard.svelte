@@ -1,11 +1,11 @@
 <script lang="ts">
-	let { eScore, imdbUrl }: { eScore: number | null; imdbUrl: string } = $props()
+	let { eScore, imdbUrl, onDownload }: { eScore: number | null; imdbUrl: string; onDownload: () => void } = $props()
 </script>
 
 <div class="card escore-card">
 	<div class="escore-label">E-SCORE</div>
 	<div class="escore-value">{eScore}</div>
-	<button class="btn-onesheet">&#8595; Download Celebrity One-Sheet</button>
+	<button class="btn-onesheet" onclick={onDownload}>&#8595; Download Celebrity One-Sheet</button>
 	<a class="imdb-link" href={imdbUrl} target="_blank" rel="noopener">Link to Celebrity's IMDb page</a>
 </div>
 

@@ -41,7 +41,10 @@
 			{
 				name: celebName,
 				type: 'bar' as const,
-				data: view.series(cats.map(k => celeb.data[k]), celeb.base),
+				data: view.series(
+					cats.map(k => celeb.data[k]),
+					celeb.base,
+				),
 				itemStyle: { color: RED },
 				label: view.barLabel(),
 			},
@@ -51,7 +54,10 @@
 			series.push({
 				name: `${categoryName} Avg.`,
 				type: 'bar' as const,
-				data: view.series(cats.map(k => cat.data[k]), cat.base),
+				data: view.series(
+					cats.map(k => cat.data[k]),
+					cat.base,
+				),
 				itemStyle: { color: GREY_BAR },
 				label: { show: false },
 			})
@@ -62,7 +68,7 @@
 </script>
 
 {#if option}
-	<ChartCard title="Power Factors&trade;" {option} />
+	<ChartCard title="Power Factors&trade;" {option} exportId="power-factors" />
 {:else if data}
 	<ChartEmpty title="Power Factors&trade;" />
 {:else}
