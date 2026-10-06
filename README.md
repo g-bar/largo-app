@@ -19,7 +19,7 @@ accordingly.
 
 A survey works in two stages, and the metrics follow that split. First everyone is asked
 whether they recognise the subject at all. Only the people who do recognise them go on to
-rate them. So **awareness** is measured over everyone surveyed, while every other metric
+rate them. So awareness is measured over everyone surveyed, while every other metric
 is measured only among the people who know the subject.
 
 - **Awareness**: of everyone surveyed, how many recognise the subject (by name, by face,
@@ -48,10 +48,10 @@ awareness up top, then charts for appeal, attributes, and power factors, each sh
 against the relevant category benchmark so you can see where the person sits relative to
 their peers.
 
-The whole page is filterable. Narrow it to a **fielding date**, a **gender**, or an
-**age band**, and every number and chart re-reads for exactly that audience. The filters
-live in the URL, so a particular filtered scorecard is shareable with a link. Charts can
-switch between a **percentage** view and a **count** view (how many
+The whole page is filterable. Narrow it to a fielding date, a gender, or an age band,
+and every number and chart re-reads for exactly that audience. The filters live in the
+URL, so a particular filtered scorecard is shareable with a link. Charts can switch
+between a percentage view and a count view (how many
 people). Counts are only offered where they're a fair comparison, within a single
 subject; different actors or category benchmarks sit on a different base than the
 celebrity. The two are counted over different populations (people surveyed about Brad
@@ -59,8 +59,8 @@ Pitt vs all surveys about any actor in a given category), so their raw counts ar
 comparable.
 
 Each chart has two controls in its top-right corner. There was no spec for these, so
-their functionality was inferred. The **expand** icon opens the chart full-size in a
-dialog for a closer look. The **options** menu (the three dots) lets users switch to a
+their functionality was inferred. The expand icon opens the chart full-size in a
+dialog for a closer look. The options menu (the three dots) lets users switch to a
 table view or download the chart as a PNG or CSV.
 
 ### Compare
@@ -76,8 +76,8 @@ reordering them reorders the bars in the chart to match.
 
 ### Export
 
-Any scorecard can be downloaded as a **CSV** for further analysis, or as a one-page
-**PDF** summary suitable for sharing or dropping into a deck. The PDF is a dummy built
+Any scorecard can be downloaded as a CSV for further analysis, or as a one-page
+PDF summary suitable for sharing or dropping into a deck. The PDF is a dummy built
 from the data already on the page; a real implementation would replace it with the
 properly formatted report.
 
@@ -86,18 +86,18 @@ properly formatted report.
 A few pieces of the interface are present but inert, to match the look of the source
 dashboard:
 
-- The top-nav **Dashboard** and **Smart search** links, and the **user badge**, are
-  placeholders. There is **no authentication**; a real dashboard would sit behind a
+- The top-nav Dashboard and Smart search links, and the user badge, are
+  placeholders. There is no authentication; a real dashboard would sit behind a
   login and tie the badge to the signed-in user.
-- On the scorecard toolbar, the **Subscription details** button and the table-view
+- On the scorecard toolbar, the Subscription details button and the table-view
   toggle are decorative. Only the percentage/count toggle is active.
 
 ## Sample data
 
-All data is synthetic. The seed generates two fielding dates for **20 celebrities**
+All data is synthetic. The seed generates two fielding dates for 20 celebrities
 across every gender, age band, and recognition slice. The numbers are made up, but they
 are built so the slices always reconcile: for a given celebrity and fielding date the
-**total equals male plus female**, and the total equals the sum across the age bands.
+total equals male plus female, and the total equals the sum across the age bands.
 
-The celebrity names, **IMDb links, and photos are real** (the photo is just the main
+The celebrity names, IMDb links, and photos are real (the photo is just the main
 IMDb profile image and the link points at the real IMDb profile).
