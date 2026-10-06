@@ -69,7 +69,7 @@ The comparison view puts several subjects side by side on a single audience slic
 fielding date, and shows every metric at once (awareness, appeal, attributes, and power
 factors), each as its own bar chart. You can mix individual celebrities with category
 benchmarks. The whole comparison lives in the URL, so any given side-by-side is shareable
-with a link.
+with a link. For example <https://largo.delightfulocean-699c94af.northeurope.azurecontainerapps.io/compare?subjects=brad-pitt%2Cchristian-bale%2Cfilm-actor>.
 
 Each subject appears as an E-Score badge above the chart. The badges are draggable, and
 reordering them reorders the bars in the chart to match.
