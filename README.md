@@ -19,7 +19,7 @@ accordingly.
 
 A survey works in two stages, and the metrics follow that split. First everyone is asked
 whether they recognise the subject at all. Only the people who do recognise them go on to
-rate them. So **awareness** is measured over everyone surveyed, while every other metric
+rate them. So awareness is measured over everyone surveyed, while every other metric
 is measured only among the people who know the subject.
 
 - **Awareness**: of everyone surveyed, how many recognise the subject (by name, by face,
@@ -48,10 +48,10 @@ awareness up top, then charts for appeal, attributes, and power factors, each sh
 against the relevant category benchmark so you can see where the person sits relative to
 their peers.
 
-The whole page is filterable. Narrow it to a **fielding date**, a **gender**, or an
-**age band**, and every number and chart re-reads for exactly that audience. The filters
-live in the URL, so a particular filtered scorecard is shareable with a link. Charts can
-switch between a **percentage** view and a **count** view (how many
+The whole page is filterable. Narrow it to a fielding date, a gender, or an age band,
+and every number and chart re-reads for exactly that audience. The filters live in the
+URL, so a particular filtered scorecard is shareable with a link. Charts can switch
+between a percentage view and a count view (how many
 people). Counts are only offered where they're a fair comparison, within a single
 subject; different actors or category benchmarks sit on a different base than the
 celebrity. The two are counted over different populations (people surveyed about Brad
