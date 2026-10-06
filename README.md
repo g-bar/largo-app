@@ -77,8 +77,8 @@ reordering them reorders the bars in the chart to match.
 ### Export
 
 Any scorecard can be downloaded as a CSV for further analysis, or as a one-page
-PDF summary suitable for sharing or dropping into a deck. The PDF is a dummy built
-from the data already on the page; a real implementation would replace it with the
+PDF summary. The PDF is a dummy built from the data already on the page; 
+a real implementation would replace it with the
 properly formatted report.
 
 ### Not yet wired up
