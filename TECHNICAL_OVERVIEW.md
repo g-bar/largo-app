@@ -1,11 +1,14 @@
 # Technical overview
 
-Largo E-Score is a SvelteKit (Svelte 5) application that renders celebrity survey
-scorecards from a Postgres database. This document covers the architecture: how a request flows,
-how the data is modelled and read, and how the app is built and deployed.
-
+Largo E-Score is a SvelteKit (Svelte 5) application that renders a dashboard of
+celebrity survey scorecards backed by a Postgres database. This document covers the
+architecture: how a request flows, how the data is modelled and read, and how the app is
+built and deployed.
 
 ## Running locally
+
+Running the app locally requires [Node](https://nodejs.org/),
+[pnpm](https://pnpm.io/), and [Docker](https://www.docker.com/).
 
 ```sh
 pnpm install
@@ -17,9 +20,9 @@ pnpm dev           # start the dev server
 
 ## Stack
 
-- **Framework**: SvelteKit on Svelte 5 (runes), `@sveltejs/adapter-node` producing a
+- **Framework**: SvelteKit on Svelte 5, `@sveltejs/adapter-node` producing a
   Node server (`node build`, port 3000).
-- **Database**: Postgres 17, accessed through Drizzle ORM over the `postgres` driver.
+- **Database**: Postgres 17, accessed through Drizzle ORM.
 - **Validation**: valibot schemas validate query params.
 - **Charts**: ECharts, with a shared chart layer in `src/lib/chart.ts`.
 - **Export**: jsPDF for the one-page PDF; a hand-rolled CSV builder for scorecards.
@@ -69,7 +72,7 @@ Each page's `load`:
    `compareParamsSchema`). Invalid params are a 404, not a silent fallback. Missing
    params fall back to defaults: the default fielding date and the "all" sentinels
    (`gender = total`, `ageBand = total`).
-2. Calls the database accessors, fanning out concurrent reads with `Promise.all`.
+2. Calls the database accessors.
 3. Returns a plain data object the Svelte page renders.
 
 The scorecard load (`celebrity/[id]/+page.server.ts`) 404s if the celebrity is unknown
@@ -106,15 +109,6 @@ decides which denominator (base) each number carries.
 There is no separate scorecard table; a scorecard is just the set of rows for a
 subject x fieldingDate, assembled at read time.
 
-### Dimensions and sentinels
-
-Every dimension is a Postgres enum carrying a real "all" sentinel value, never NULL
-(`gender = total`, `ageBand = total`, `awarenessMode = any`). This makes unique
-constraints dedup correctly (Postgres treats NULLs as distinct), gives one convention
-for "all" across every dimension, and keeps querying uniform (`WHERE gender = 'total'`).
-NULL is used only for `celebrityId` / `categoryId`, where exactly one is set; a check
-constraint enforces that exactly one of the two is non-null on every subject row.
-
 ### `data` payloads (json)
 
 - **appeal**: the 6-point distribution
@@ -126,7 +120,7 @@ constraint enforces that exactly one of the two is non-null on every subject row
 ### Bases and invariants
 
 The `base` on a question row is the honest denominator: the size of the population that
-metric was measured over. Awareness is measured over the sample (`sampleBase`); `question_reults`
+metric was measured over. Awareness is measured over the sample (`sampleBase`); `question_results`
 are measured over the awares, so a row's base equals the matching awareness
 count. The invariants the data must satisfy:
 
@@ -167,9 +161,8 @@ categories, so most reads match `celebrityId = id OR categoryId = id`. Key funct
 ### Types and validation (`types.ts`)
 
 One module holds the shared enums (as `as const` tuples), the valibot query schemas, and
-the response types (`AppealData`, `OrderedMap`, `QuestionResult`, `Awareness`). It is
-imported by loads, endpoints, and client fetch wrappers, so types and runtime validation
-stay in sync. The compare layer treats awareness as its own metric (it is not a DB
+the response types (`AppealData`, `OrderedMap`, `QuestionResult`, `Awareness`).
+The compare layer treats awareness as its own metric (it is not a DB
 `question`, since its % is derived) and reads it via `getAwareness`;
 `compareParamsSchema` parses the `subjects` param from a comma-separated string, then
 trims, de-dupes, and caps it at `COMPARE_MAX_SUBJECTS`.
@@ -198,9 +191,7 @@ adapts to the metric's data shape: a scalar metric (E-Score) renders one bar per
 while a distribution or ordered map (appeal, attributes, power factors) renders a grouped
 bar chart (x-axis = the metric's keys, one bar per subject within each group, subjects
 distinguished by color). Categories can be mixed in with celebrities except on E-Score
-(which categories do not have); when the metric is E-Score the load drops any category
-ids. The whole comparison renders as percentages only, for the cross-subject fairness
-reason above.
+(which categories do not have).The whole comparison renders as percentages only.
 
 ## Export
 
@@ -225,8 +216,7 @@ The `Dockerfile` is multi-stage with two final targets:
 
 `compose.yaml` runs a Postgres 17 container for development; the `pnpm db:*` scripts
 drive migrate/seed/studio against it using `.env` for `DATABASE_URL`. Migrations are SQL
-files committed to git via `db:generate` + `db:migrate` (no `db:push`), so the migration
-files stay the source of truth.
+files committed to git via `db:generate` + `db:migrate`.
 
 ### Azure (Terraform in `infra/`)
 
@@ -253,29 +243,23 @@ Networking (`network.tf`):
   └──────────────────────────────────────────────────────┘
 ```
 
-- A VNet with two delegated subnets: `snet-aca` for the Container Apps environment (no
-  NSG, since the platform needs specific traffic a wrong rule would break) and
+- A VNet with two delegated subnets: `snet-aca` for the Container Apps environment and
   `snet-postgres` for the database, with an NSG that allows 5432 only from the app subnet
   and denies the rest of the VNet.
-- A **Postgres Flexible Server** (v17, `B_Standard_B1ms`, 32 GB, 7-day backups),
-  VNet-integrated with no public endpoint and TLS required, reached over a private DNS
-  zone. The DNS zone link must exist before the server is created.
+- A **Postgres Flexible Server** VNet-integrated with no public endpoint and TLS required, 
+  reached over a private DNS zone.
 - An **Azure Container Registry** (Basic), pulled via a user-assigned managed identity
   with `AcrPull`.
 - A **Log Analytics workspace** (30-day retention, required) and the **Container Apps
   environment** on the Consumption workload profile, keeping scale-to-zero.
 - The **container app** itself: external HTTPS ingress on port 3000, `DATABASE_URL`
-  injected as a secret, `PROTOCOL_HEADER` / `HOST_HEADER` set to the forwarded-proto /
-  forwarded-host headers so SvelteKit's origin check uses the public host (avoiding a
-  circular dependency on the app's own FQDN). Replicas scale from `var.min_replicas`
-  (default 0) to 1. A placeholder image is used at create and `ignore_changes` is set on
-  the image, since the real image is managed out of band.
+  injected as a secret. Replicas scale from `var.min_replicas`
+  (default 0) to 1.
 - A manually triggered **migrate job** (`job-largo-migrate`) on the tools image, with
   the same secret and identity.
 
 Release flow (`infra/deploy.sh`): read the infra names from Terraform outputs, build the
-`app` and `tools` images in the cloud with `az acr build` (linux/amd64, so nothing
-cross-compiles on an ARM Mac), run the migrate job and wait for it to succeed, then
+`app` and `tools` images in the cloud with `az acr build`, run the migrate then
 `az containerapp update` the app to the new image. Seeding is a one-time step outside the
 release (the synthetic seed runs once). Scale settings are managed through Terraform, not
 the CLI, so a CLI change would show up as drift and be reverted on the next apply.
