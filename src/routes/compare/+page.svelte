@@ -103,7 +103,7 @@
 	// The library tags the gap-filling placeholder item with this marker at runtime.
 	const isShadow = (b: Badge) => (b as Record<string, unknown>)[SHADOW_ITEM_MARKER_PROPERTY_NAME] === true
 
-	// Already-selected subjects are shown as tags, so drop them from search results.
+	// Already-selected subjects are shown so drop them from search results.
 	const visibleResults = $derived(searchResults.filter(r => !selectedSet.has(r.id)))
 
 	function navigate(params: URLSearchParams) {
@@ -122,7 +122,7 @@
 		navigate(params)
 	}
 
-	// The compare view can't render a one-sheet, so each celebrity badge links to its own
+	// Each celebrity badge links to its own
 	// scorecard page carrying the current fielding/gender/age filters.
 	const scorecardHref = (id: string) => {
 		const p = new URLSearchParams(data.filter as Record<string, string>)
