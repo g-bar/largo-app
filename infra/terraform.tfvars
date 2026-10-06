@@ -2,3 +2,6 @@
 # North Europe, the cheapest of the open EU regions for the Postgres B1ms + storage
 # that dominates cost (verified against Azure retail prices).
 location = "northeurope"
+
+# Keep one replica warm (no cold starts). Billed at the lower idle rate.
+min_replicas = 1

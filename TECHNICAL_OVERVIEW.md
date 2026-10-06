@@ -1,9 +1,8 @@
 # Technical overview
 
 Largo E-Score is a SvelteKit (Svelte 5) application that renders celebrity survey
-scorecards from a Postgres database. All figures are synthetic but modelled on E-Poll
-survey methodology. This document covers the architecture: how a request flows, how the
-data is modelled and read, and how the app is built and deployed.
+scorecards from a Postgres database. This document covers the architecture: how a request flows,
+how the data is modelled and read, and how the app is built and deployed.
 
 
 ## Running locally
@@ -21,8 +20,7 @@ pnpm dev           # start the dev server
 - **Framework**: SvelteKit on Svelte 5 (runes), `@sveltejs/adapter-node` producing a
   Node server (`node build`, port 3000).
 - **Database**: Postgres 17, accessed through Drizzle ORM over the `postgres` driver.
-  `DATABASE_URL` is read at runtime via `$env/dynamic/private`.
-- **Validation**: valibot schemas validate query params at every boundary.
+- **Validation**: valibot schemas validate query params.
 - **Charts**: ECharts, with a shared chart layer in `src/lib/chart.ts`.
 - **Export**: jsPDF for the one-page PDF; a hand-rolled CSV builder for scorecards.
 - **Tooling**: Vite, ESLint, Prettier, drizzle-kit for migrations, pnpm workspace.
@@ -61,14 +59,7 @@ call the same pure accessors:
   and full type safety. This serves the fixed scorecard, the list, and the compare view.
 - **Data requested after the page renders goes through a JSON endpoint**
   (`routes/api/`). This is the stable way to serve arbitrary client-driven queries at
-  runtime (for example user-added charts), with the client showing a skeleton until it
-  resolves.
-
-The key rule that keeps this clean: the accessors in `src/lib/server/db/accessors.ts`
-are pure (plain args in, plain data out, no SvelteKit coupling), so the load calls them
-directly and the endpoint validates params then calls the same functions. One data
-layer, two deliveries. If SvelteKit remote functions ever stabilise, both collapse into
-`query()` calls over the same accessors with no data-layer rewrite.
+  runtime with the client showing a skeleton until it resolves.
 
 ## Request flow
 
@@ -78,7 +69,7 @@ Each page's `load`:
    `compareParamsSchema`). Invalid params are a 404, not a silent fallback. Missing
    params fall back to defaults: the default fielding date and the "all" sentinels
    (`gender = total`, `ageBand = total`).
-2. Calls the accessors, fanning out concurrent reads with `Promise.all`.
+2. Calls the database accessors, fanning out concurrent reads with `Promise.all`.
 3. Returns a plain data object the Svelte page renders.
 
 The scorecard load (`celebrity/[id]/+page.server.ts`) 404s if the celebrity is unknown
@@ -89,15 +80,14 @@ its own comparison axis: Total Appeal fans over awareness mode, Attributes fans 
 gender, the rest inherit gender.
 
 The JSON endpoints under `routes/api/` (question, celebrity, celebrity search) validate
-with the same schemas and call the same accessors, so the HTTP boundary and the SSR load
-share one contract. The endpoint is a public surface and would need auth before holding
-subscriber-only data.
+with the same schemas and call the same accessors.
+The endpoint is a public surface and would need auth before holding subscriber-only data.
 
 ## Data model
 
 The measurement model has two levels, distinguished by the population a number is
-measured over. **Awareness** is the gate, measured over the whole sample. **Appeal,
-attributes, power factors, and E-Score** are gated, asked only of respondents who are
+measured over. **Awareness** is measured over the whole sample. **Appeal,
+attributes, power factors, and E-Score** are asked only of respondents who are
 aware of the subject, so they are measured over the aware subpopulation. This split
 decides which denominator (base) each number carries.
 
@@ -105,11 +95,11 @@ decides which denominator (base) each number carries.
 
 - `celebrity`, `category`, `celebrity_category`: subjects and their benchmark
   memberships (position 1 is the primary benchmark, used by Appeal and Power Factors).
-- `awareness` (the gate): one row per subject x fieldingDate x gender x ageBand, holding
+- `awareness`: one row per subject x fieldingDate x gender x ageBand, holding
   `sampleBase` (people surveyed) and the aware counts by recognition mode (`awareAny`,
-  `awareName`, `awareFace`). These counts are the single source of truth for the gated
-  denominators.
-- `question_result` (the gated detail): one row per subject x fieldingDate x gender x
+  `awareName`, `awareFace`). These counts are the single source of truth for the
+  `question_result` bases.
+- `question_result`: one row per subject x fieldingDate x gender x
   ageBand x awarenessMode x question, holding `base` (the aware count for that cell) and
   `data` (a JSON payload whose shape depends on the question).
 
@@ -125,10 +115,7 @@ for "all" across every dimension, and keeps querying uniform (`WHERE gender = 't
 NULL is used only for `celebrityId` / `categoryId`, where exactly one is set; a check
 constraint enforces that exactly one of the two is non-null on every subject row.
 
-### `data` payloads (json, not jsonb)
-
-Stored as `json` to preserve object key order, which is the bar order for attributes and
-power factors (`jsonb` reorders keys).
+### `data` payloads (json)
 
 - **appeal**: the 6-point distribution
   `{ likeALot, like, likeSomewhat, dislikeSomewhat, dislike, dislikeALot }`. Box scores
@@ -139,12 +126,12 @@ power factors (`jsonb` reorders keys).
 ### Bases and invariants
 
 The `base` on a question row is the honest denominator: the size of the population that
-metric was measured over. Awareness is measured over the sample (`sampleBase`); gated
-metrics are measured over the awares, so a gated row's base equals the matching awareness
+metric was measured over. Awareness is measured over the sample (`sampleBase`); `question_reults`
+are measured over the awares, so a row's base equals the matching awareness
 count. The invariants the data must satisfy:
 
 1. Exactly one of `celebrityId` / `categoryId` is set on every subject row.
-2. A gated row's `base` equals the matching awareness count
+2. A `question_result` row's `base` equals the matching awareness count
    (`any -> awareAny`, `name -> awareName`, `face -> awareFace`).
 3. Stored `total` (gender, age) equals the sum of its slices; `awarenessMode = any` is
    the OR-union of name/face (they overlap), not a sum.
@@ -245,7 +232,7 @@ files stay the source of truth.
 
 Deployed to Azure Container Apps in West Europe. The app is public (no login). Terraform
 authenticates as the signed-in Azure CLI user, with state in a shared azurerm backend
-under the `largo-app.tfstate` key. The `infra/` folder is gitignored.
+under the `largo-app.tfstate` key.
 
 Networking (`network.tf`):
 

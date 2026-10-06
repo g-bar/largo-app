@@ -79,8 +79,8 @@ resource "azurerm_container_app" "largo" {
     container {
       name   = var.prefix
       image  = local.placeholder_image
-      cpu    = 0.5
-      memory = "1Gi"
+      cpu    = 1.0
+      memory = "2Gi"
 
       env {
         name        = "DATABASE_URL"

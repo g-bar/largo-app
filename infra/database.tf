@@ -11,7 +11,7 @@ resource "azurerm_postgresql_flexible_server" "largo" {
   location            = azurerm_resource_group.largo.location
 
   version    = "17"
-  sku_name   = "B_Standard_B1ms"
+  sku_name   = "GP_Standard_D2s_v3"
   storage_mb = 32768
 
   backup_retention_days = 7
